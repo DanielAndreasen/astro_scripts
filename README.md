@@ -21,6 +21,12 @@ This I find to be a very powerful and handy python script. It simply plot a fits
 
 For this script one needs to use the telluric and solar spectrum provided here and change the path in `plot_fits` in line 44 and line 55.
 
+The wavelength vector is created from the fits (which should be 1D). It uses
+the keywords
+   - CRVAL1: The beginning of the wavelength.
+   - CDELT1: The step in wavelength.
+   - NAXIS: The length of the wavelength vector.
+
 
 numpy2moog
 ==========

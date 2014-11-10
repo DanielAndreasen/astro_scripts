@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+# My imports
+from __future__ import division
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+from astropy.io import fits
+import argparse
+
+
+def get_wavelength(hdr):
+    w0, dw, n = hdr['CRVAL1'], hdr['CDELT1'], hdr['NAXIS1']
+    w1 = w0 + dw * n
+    return np.linspace(w0, w1, n)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be\
+                                     careful with large files')
+    parser.add_argument('input', help='Input fits file')
+    parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun (1)',
+                        default=False)
+    parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum\
+            (1)', default=False)
+    parser.add_argument('-r', '--rv', help='RV correction to the spectra in\
+            km/s', default=False, type=float)
+    args = parser.parse_args()
+
+    fname = args.input
+    I = fits.getdata(fname)
+    I /= np.median(I)
+    hdr = fits.getheader(fname)
+
+    if args.rv:
+        rv = args.rv
+        factor = (rv/299792.458 + 1)
+        w = get_wavelength(hdr) * factor
+    else:
+        w = get_wavelength(hdr)
+    w0, w1 = w[0], w[-1]
+
+    if args.sun:
+        path = '/home/daniel/Documents/Uni/phdproject/data/atlas/BASS2000/solarspectrum_01.fits'
+        I_sun = fits.getdata(path)
+        hdr = fits.getheader(path)
+        w_sun = get_wavelength(hdr)
+        i1 = w_sun > w0
+        i2 = w_sun < w1
+        w_sun = w_sun[i1 * i2]
+        I_sun = I_sun[i1 * i2]
+        I_sun /= np.median(I_sun)
+
+    if args.telluric:
+        path = '/home/daniel/Documents/Uni/phdproject/data/HD20010/telluric_NIR.fits'
+        I_tel = fits.getdata(path)
+        hdr = fits.getheader(path)
+        w_tel= get_wavelength(hdr)
+        i1 = w_tel > w0
+        i2 = w_tel < w1
+        w_tel = w_tel[i1 * i2]
+        I_tel = I_tel[i1 * i2]
+        I_tel /= np.median(I_tel)
+
+    fig = plt.figure(figsize=(16, 5))
+    # Start in pan mode with these two lines
+    manager = plt.get_current_fig_manager()
+    manager.toolbar.pan()
+    ax = fig.add_subplot(111)
+    # Use nice numbers on x axis (y axis is normalized)...
+    x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
+    ax.xaxis.set_major_formatter(x_formatter)
+    if args.sun:
+        ax.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
+    if args.telluric:
+        ax.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
+    ax.plot(w, I, '-k', lw=2, label='Star')
+    ax.set_xlabel('Wavelength')
+    ax.set_ylabel('"Normalized" intensity')
+    if args.rv:
+        ax.set_title(fname + '\nRV correction: ' + str(args.rv) + ' km/s')
+    else:
+        ax.set_title(fname)
+    if args.sun or args.telluric:
+        ax.legend(loc=3, frameon=False)
+    plt.show()

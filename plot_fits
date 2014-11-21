@@ -15,6 +15,7 @@ def get_wavelength(hdr):
     w1 = w0 + dw * n
     return np.linspace(w0, w1, n)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be\
                                      careful with large files')
@@ -33,9 +34,10 @@ if __name__ == '__main__':
     hdr = fits.getheader(fname)
 
     if args.rv:
+        from PyAstronomy import pyasl
         rv = args.rv
-        factor = (rv/299792.458 + 1)
-        w = get_wavelength(hdr) * factor
+        w = get_wavelength(hdr)
+        I, w = pyasl.dopplerShift(w, I, rv, edgeHandling='firstlast')
     else:
         w = get_wavelength(hdr)
     w0, w1 = w[0], w[-1]

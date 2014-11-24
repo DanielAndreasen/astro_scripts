@@ -35,8 +35,8 @@ the keywords
 
 ## Dependencies
    * [Matplotlib](http://matplotlib.org/)
-   * [Astropy](www.astropy.org)
-   * [numpy](www.numpy.org)
+   * [Astropy](http://astropy.org)
+   * [numpy](http://numpy.org)
    * [argparse](https://docs.python.org/3/library/argparse.html)
    * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
 

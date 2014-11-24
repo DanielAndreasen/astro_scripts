@@ -27,6 +27,8 @@ the keywords
    - CDELT1: The step in wavelength.
    - NAXIS: The length of the wavelength vector.
 
+![Example](plot_fits.png)
+
 
 numpy2moog
 ==========

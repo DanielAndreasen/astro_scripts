@@ -34,11 +34,11 @@ the keywords
 ![Example](plot_fits.png "An example of using plot_fits with matplotlib")
 
 ## Dependencies
-    * [Matplotlib](www.matplotlib.org)
-    * [Astropy](www.astropy.org)
-    * [numpy](www.numpy.org)
-    * [argparse](https://docs.python.org/3/library/argparse.html)
-    * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
+   * [Matplotlib](www.matplotlib.org)
+   * [Astropy](www.astropy.org)
+   * [numpy](www.numpy.org)
+   * [argparse](https://docs.python.org/3/library/argparse.html)
+   * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
 
 numpy2moog
 ==========

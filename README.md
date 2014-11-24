@@ -34,7 +34,7 @@ the keywords
 ![Example](plot_fits.png "An example of using plot_fits with matplotlib")
 
 ## Dependencies
-   * [Matplotlib](www.matplotlib.org)
+   * [Matplotlib](http://matplotlib.org/)
    * [Astropy](www.astropy.org)
    * [numpy](www.numpy.org)
    * [argparse](https://docs.python.org/3/library/argparse.html)

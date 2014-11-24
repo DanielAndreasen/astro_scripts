@@ -17,9 +17,13 @@ I recommend putting this folder in your PATH so the scripts are easily accesible
 
 plot_fits
 =========
-This I find to be a very powerful and handy python script. It simply plot a fits file and leave you in pan mode (matplotlib). More over it has the feature to plot a part of the solar spectrum and telluric lines, and finally redshift the spectrum.
+This I find to be a very powerful and handy python script. It simply
+plot a fits file and leave you in pan mode (matplotlib). More over it
+has the feature to plot a part of the solar spectrum and telluric lines,
+and finally redshift the spectrum.
 
-For this script one needs to use the telluric and solar spectrum provided here and change the path in `plot_fits` in line 44 and line 55.
+For this script one needs to use the telluric and solar spectrum
+provided here and change the path in `plot_fits` in line 46 and line 57.
 
 The wavelength vector is created from the fits (which should be 1D). It uses
 the keywords
@@ -27,8 +31,14 @@ the keywords
    - CDELT1: The step in wavelength.
    - NAXIS: The length of the wavelength vector.
 
-![Example](plot_fits.png)
+![Example](plot_fits.png "An example of using plot_fits with matplotlib")
 
+## Dependencies
+    * [Matplotlib](www.matplotlib.org)
+    * [Astropy](www.astropy.org)
+    * [numpy](www.numpy.org)
+    * [argparse](https://docs.python.org/3/library/argparse.html)
+    * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
 
 numpy2moog
 ==========

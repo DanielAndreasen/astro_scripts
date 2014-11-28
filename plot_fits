@@ -26,6 +26,10 @@ if __name__ == '__main__':
             (1)', default=False)
     parser.add_argument('-r', '--rv', help='RV correction to the spectra in\
             km/s', default=False, type=float)
+    parser.add_argument('-l', '--lines',
+                        help='Lines to plot on top (multiple lines is an\
+                        option). If multiple lines needs to be plotted, then\
+                        separate with , and without any spaces.', default=False, type=list)
     args = parser.parse_args()
 
     fname = args.input
@@ -77,6 +81,12 @@ if __name__ == '__main__':
     if args.telluric:
         ax.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
     ax.plot(w, I, '-k', lw=2, label='Star')
+    if args.lines:
+        lines = args.lines
+        lines = ''.join(lines).split(',')
+        lines = map(float, lines)
+        y0, y1 = ax.get_ylim()
+        ax.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax.set_xlabel('Wavelength')
     ax.set_ylabel('"Normalized" intensity')
     if args.rv:

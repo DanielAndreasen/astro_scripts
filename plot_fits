@@ -23,9 +23,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun (1)',
                         default=False)
     parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum\
-            (1)', default=False)
+                        (1)', default=False)
     parser.add_argument('-r', '--rv', help='RV correction to the spectra in\
-            km/s', default=False, type=float)
+                        km/s', default=False, type=float)
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an\
                         option). If multiple lines needs to be plotted, then\

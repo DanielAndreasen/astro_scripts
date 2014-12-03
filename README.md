@@ -14,9 +14,15 @@ a block comment in top of the file.
 
 I recommend putting this folder in your PATH so the scripts are easily accesible. To do so depends on your system. I am sure [google](www.google.com) can help you ;)
 
+## Dependencies
+   * [Matplotlib](http://matplotlib.org/)
+   * [Astropy](http://astropy.org)
+   * [numpy](http://numpy.org)
+   * [argparse](https://docs.python.org/3/library/argparse.html)
+   * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
 
-plot_fits
-=========
+
+## plot_fits
 This I find to be a very powerful and handy python script. It simply
 plot a fits file and leave you in pan mode (matplotlib). More over it
 has the feature to plot a part of the solar spectrum and telluric lines,
@@ -33,33 +39,41 @@ the keywords
 
 ![Example](plot_fits.png "An example of using plot_fits with matplotlib")
 
-## Dependencies
-   * [Matplotlib](http://matplotlib.org/)
-   * [Astropy](http://astropy.org)
-   * [numpy](http://numpy.org)
-   * [argparse](https://docs.python.org/3/library/argparse.html)
-   * [PyAstronomy](http://www.hs.uni-hamburg.de/DE/Ins/Per/Czesla/PyA/PyA/index.html)
 
-numpy2moog
-==========
-This is a python script that converts ASCII arrays into the format for [MOOG](http://www.as.utexas.edu/~chris/moog.html]). It can be a bit tricky, but I will provide examples in the future.
+## numpy2moog
+This is a python script that converts ASCII arrays into the format for [MOOG](http://www.as.utexas.edu/~chris/moog.html]).
+It can be a bit tricky, but I will provide examples in the future.
 
 
-splotCommenter.sh
-=================
-This one-liner I have saved in a script put a `#` on all the lines containing a `center` from a IRAF files after using the `splot` routine. This allows to easy read the `splot.log` with python using something like `np.loadtxt`. One probably need to remove date strings. This should be easy to implement I guess.
+## VALDextraction
+This script is used to send emails to `extract all` from the VALD database. A
+central wavelength should be inputted with the `-h` flag, and the half range
+should be given with the `-s` flag.
+
+#### Example
+    VALDextraction -w 6743 -s 3
+
+This will open a new email (Thunderbird) with the syntax required for VALD (no
+reason to delete the signature) in a 6Å window centered on the wavelength
+6743Å.
 
 
-VALDprepare.sh
-==============
-This bash script unpack a linelist from [VALD](http://vald.astro.univie.ac.at/~vald3/php/vald.php) when the download option is set to FTP. The downloadable file is `.gz`. This file is unpacked and saved in an optional `output` argument (see the block comment in the script). The references is saved in a seperate file, and the final file is relatively easy to read with `np.loadtxt`.
+## splotCommenter.sh
+This one-liner I have saved in a script put a `#` on all the lines containing a `center` from a IRAF files after using
+the `splot` routine. This allows to easy read the `splot.log` with python using something like `np.loadtxt`. One
+probably need to remove date strings. This should be easy to implement I guess.
 
 
-CONTRIBUTE
-==========
+## VALDprepare.sh
+This bash script unpack a linelist from [VALD](http://vald.astro.univie.ac.at/~vald3/php/vald.php) when the download
+option is set to FTP. The downloadable file is `.gz`. This file is unpacked and saved in an optional `output` argument
+(see the block comment in the script). The references is saved in a seperate file, and the final file is relatively
+easy to read with `np.loadtxt`.
+
+
+## CONTRIBUTE
 Feel free to open an issue with suggestions or bugs.
 
 
-LICENCE
-=======
+## LICENCE
 Read the LICENCE file.

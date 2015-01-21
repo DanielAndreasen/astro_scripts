@@ -29,7 +29,8 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an\
                         option). If multiple lines needs to be plotted, then\
-                        separate with , and without any spaces.', default=False, type=list)
+                        separate with , and without any spaces.',
+                        default=False, type=list)
     args = parser.parse_args()
 
     fname = args.input
@@ -51,21 +52,19 @@ if __name__ == '__main__':
         I_sun = fits.getdata(path)
         hdr = fits.getheader(path)
         w_sun = get_wavelength(hdr)
-        i1 = w_sun > w0
-        i2 = w_sun < w1
-        w_sun = w_sun[i1 * i2]
-        I_sun = I_sun[i1 * i2]
+        i = (w_sun > w0) & (w_sun < w1)
+        w_sun = w_sun[i]
+        I_sun = I_sun[i]
         I_sun /= np.median(I_sun)
 
     if args.telluric:
         path = '/home/daniel/Documents/Uni/phdproject/data/HD20010/telluric_NIR.fits'
         I_tel = fits.getdata(path)
         hdr = fits.getheader(path)
-        w_tel= get_wavelength(hdr)
-        i1 = w_tel > w0
-        i2 = w_tel < w1
-        w_tel = w_tel[i1 * i2]
-        I_tel = I_tel[i1 * i2]
+        w_tel = get_wavelength(hdr)
+        i = (w_tel > w0) & (w_tel < w1)
+        w_tel = w_tel[i]
+        I_tel = I_tel[i]
         I_tel /= np.median(I_tel)
 
     fig = plt.figure(figsize=(16, 5))

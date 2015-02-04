@@ -238,9 +238,7 @@ def vald2numpy(input, output=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Numpy to moog readable\
     converter for the abfind routine.')
-    parser.add_argument('-i', '--input', required=True,
-                        help='Input numpy file')
-
+    parser.add_argument('input', help='Input numpy file')
     parser.add_argument('-m', '--mode',
                         default='ew',
                         help='Which function to evoke [ew|synth|asc].\
@@ -261,23 +259,23 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Always add a .moog to the output if none extension is provided.
+    if args.mode == 'asc':
+        # if args.output:
+        #     if args.output.endswith != ".npy":
+        #         if not args.output.find('.') > 0:
+        #             args.output += ".npy"
+        vald2numpy(args.input, args.output)
+
     if args.mode == 'ew':
-        if args.output:
-            if args.output.endswith != ".moog":
-                if not args.output.find('.') > 0:
-                    args.output += ".moog"
+        # if args.output:
+        #     if args.output.endswith != ".moog":
+        #         if not args.output.find('.') > 0:
+        #             args.output += ".moog"
         numpy2moog_ew(args.input, args.output, args.header)
 
     if args.mode == 'synth':
-        if args.output:
-            if args.output.endswith != '.moog':
-                if not args.output.find('.') > 0:
-                    args.output += '.moog'
+        # if args.output:
+        #     if args.output.endswith != '.moog':
+        #         if not args.output.find('.') > 0:
+        #             args.output += '.moog'
         numpy2moog_synth(args.input, args.output, args.header)
-
-    if args.mode == 'asc':
-        if args.output:
-            if args.output.endswith != ".npy":
-                if not args.output.find('.') > 0:
-                    args.output += ".npy"
-        vald2numpy(args.input, args.output)

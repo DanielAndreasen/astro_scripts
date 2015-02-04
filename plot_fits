@@ -9,6 +9,10 @@ import matplotlib
 from astropy.io import fits
 import argparse
 
+path = '/home/daniel/Documents/Uni/phdproject/data/'
+pathsun = path + 'atlas/BASS2000/solarspectrum_01.fits'
+pathtel = path + 'HD20010/telluric_NIR.fits'
+
 
 def get_wavelength(hdr):
     w0, dw, n = hdr['CRVAL1'], hdr['CDELT1'], hdr['NAXIS1']
@@ -20,17 +24,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be\
                                      careful with large files')
     parser.add_argument('input', help='Input fits file')
-    parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun (1)',
-                        default=False)
-    parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum\
-                        (1)', default=False)
+    parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun ',
+                        action='store_true')
+    parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum',
+                        action='store_true')
     parser.add_argument('-r', '--rv', help='RV correction to the spectra in\
                         km/s', default=False, type=float)
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an\
                         option). If multiple lines needs to be plotted, then\
-                        separate with , and without any spaces.',
-                        default=False, type=list)
+                        separate with a space',
+                        default=False, nargs='+', type=float)
     args = parser.parse_args()
 
     fname = args.input
@@ -48,9 +52,8 @@ if __name__ == '__main__':
     w0, w1 = w[0], w[-1]
 
     if args.sun:
-        path = '/home/daniel/Documents/Uni/phdproject/data/atlas/BASS2000/solarspectrum_01.fits'
-        I_sun = fits.getdata(path)
-        hdr = fits.getheader(path)
+        I_sun = fits.getdata(pathsun)
+        hdr = fits.getheader(pathsun)
         w_sun = get_wavelength(hdr)
         i = (w_sun > w0) & (w_sun < w1)
         w_sun = w_sun[i]
@@ -58,9 +61,8 @@ if __name__ == '__main__':
         I_sun /= np.median(I_sun)
 
     if args.telluric:
-        path = '/home/daniel/Documents/Uni/phdproject/data/HD20010/telluric_NIR.fits'
-        I_tel = fits.getdata(path)
-        hdr = fits.getheader(path)
+        I_tel = fits.getdata(pathtel)
+        hdr = fits.getheader(pathtel)
         w_tel = get_wavelength(hdr)
         i = (w_tel > w0) & (w_tel < w1)
         w_tel = w_tel[i]
@@ -82,8 +84,6 @@ if __name__ == '__main__':
     ax.plot(w, I, '-k', lw=2, label='Star')
     if args.lines:
         lines = args.lines
-        lines = ''.join(lines).split(',')
-        lines = map(float, lines)
         y0, y1 = ax.get_ylim()
         ax.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax.set_xlabel('Wavelength')

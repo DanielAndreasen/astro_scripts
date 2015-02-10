@@ -10,9 +10,6 @@ from __future__ import division
 import numpy as np
 import argparse
 from clint.textui import puts, colored, indent
-from progressbar import ProgressBar
-# TODO: Right now, the function is bitching if the input file is in scientific
-# notation. Fix that
 
 
 def nlines(file):
@@ -63,8 +60,6 @@ def numpy2moog_ew(arr, output=None, header=None):
     ttt = header
 
     # puts(colored.blue('Progress'))
-    # progress = ProgressBar()
-    # for i in progress(range(len(test))):
     for i in range(len(test)):
         Wl = test[i, 0].split('.')
         Wl[1] = Wl[1][0:3]
@@ -112,8 +107,8 @@ def numpy2moog_synth(arr, output=None, header=None):
     nrow = nlines(arr) - 1  # We will not have header in our array
     test = np.zeros([nrow, 5], dtype=np.float)
 
-    with open(arr, 'r') as f:
-        for i, line in enumerate(f):
+    with open(arr, 'r') as lines:
+        for i, line in enumerate(lines):
             if i != 0:
                 ncol = line.count('\t') + 1
                 line = line.strip('\n').split('\t')
@@ -135,8 +130,7 @@ def numpy2moog_synth(arr, output=None, header=None):
     ttt = header
 
     puts(colored.blue('Progress'))
-    progress = ProgressBar()
-    for i in progress(range(len(test))):
+    for i in xrange(len(test)):
         Wl = test[i, 0].split('.')
         Wl[1] = Wl[1][0:3]
 
@@ -260,22 +254,10 @@ if __name__ == '__main__':
 
     # Always add a .moog to the output if none extension is provided.
     if args.mode == 'asc':
-        # if args.output:
-        #     if args.output.endswith != ".npy":
-        #         if not args.output.find('.') > 0:
-        #             args.output += ".npy"
         vald2numpy(args.input, args.output)
 
     if args.mode == 'ew':
-        # if args.output:
-        #     if args.output.endswith != ".moog":
-        #         if not args.output.find('.') > 0:
-        #             args.output += ".moog"
         numpy2moog_ew(args.input, args.output, args.header)
 
     if args.mode == 'synth':
-        # if args.output:
-        #     if args.output.endswith != '.moog':
-        #         if not args.output.find('.') > 0:
-        #             args.output += '.moog'
         numpy2moog_synth(args.input, args.output, args.header)

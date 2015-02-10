@@ -35,6 +35,10 @@ if __name__ == '__main__':
                         option). If multiple lines needs to be plotted, then\
                         separate with a space',
                         default=False, nargs='+', type=float)
+    parser.add_argument('-m', '--model',
+                        help='If not the Sun shoul be used as a model, put\
+                        the model here (only support BT-Settl for the moment.',
+                        default=False)
     args = parser.parse_args()
 
     fname = args.input
@@ -51,7 +55,7 @@ if __name__ == '__main__':
         w = get_wavelength(hdr)
     w0, w1 = w[0], w[-1]
 
-    if args.sun:
+    if args.sun and not args.model:
         I_sun = fits.getdata(pathsun)
         hdr = fits.getheader(pathsun)
         w_sun = get_wavelength(hdr)
@@ -69,6 +73,19 @@ if __name__ == '__main__':
         I_tel = I_tel[i]
         I_tel /= np.median(I_tel)
 
+    if args.model:
+        import string
+        rule = string.maketrans('D', 'E')  # FORTRAN scientific notation
+        w_mod, I_mod = np.loadtxt(args.model, usecols=(0, 1),
+                                  converters={1: lambda val:
+                                              float(val.translate(rule))},
+                                  unpack=True)
+        i = (w_mod > w0) & (w_mod < w1)
+        w_mod = w_mod[i]
+        I_mod = I_mod[i]
+        I_mod = 10 ** (I_mod - 8.0)  # https://phoenix.ens-lyon.fr/Grids/FORMAT
+        I_mod /= np.median(I_mod)
+
     fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
@@ -77,10 +94,12 @@ if __name__ == '__main__':
     # Use nice numbers on x axis (y axis is normalized)...
     x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
     ax.xaxis.set_major_formatter(x_formatter)
-    if args.sun:
+    if args.sun and not args.model:
         ax.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
     if args.telluric:
         ax.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
+    if args.model:
+        ax.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax.plot(w, I, '-k', lw=2, label='Star')
     if args.lines:
         lines = args.lines

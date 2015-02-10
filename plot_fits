@@ -163,12 +163,9 @@ if __name__ == '__main__':
         I_tel /= np.median(I_tel)
 
     if args.model:
-        import string
-        rule = string.maketrans('D', 'E')  # FORTRAN scientific notation
-        w_mod, I_mod = np.loadtxt(args.model, usecols=(0, 1),
-                                  converters={1: lambda val:
-                                              float(val.translate(rule))},
-                                  unpack=True)
+        I_mod = fits.getdata(args.model)
+        hdr = fits.getheader(args.model)
+        w_mod = get_wavelength(hdr)
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]

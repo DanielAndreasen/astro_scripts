@@ -241,6 +241,13 @@ if __name__ == '__main__':
     ax.set_ylabel('"Normalized" intensity')
     if args.rv:
         ax.set_title(fname + '\nRV correction: ' + str(args.rv) + ' km/s')
+    elif args.rv1 and args.rv2:
+        ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
+                     args.rv1, args.rv2))
+    elif args.rv1 and not args.rv2:
+        ax.set_title('%s\nSun/model: %s km/s' % (fname, args.rv1))
+    elif not args.rv1 and args.rv2:
+        ax.set_title('%s\nTelluric: %s km/s' % (fname, args.rv2))
     else:
         ax.set_title(fname)
     if args.sun or args.telluric:

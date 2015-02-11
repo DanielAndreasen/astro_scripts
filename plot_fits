@@ -15,8 +15,32 @@ pathsun = path + 'atlas/BASS2000/solarspectrum_01.fits'
 pathtel = path + 'HD20010/telluric_NIR.fits'
 
 
+def nrefrac(wavelength, density=1.0):
+    """
+    Calculate refractive index of air from Cauchy formula. Input:
+    wavelength in Angstrom, density of air in amagat (relative to STP,
+    e.g. ~10% decrease per 1000m above sea level). Returns N = (n-1) *
+    1.e6.
+    """
+    # The IAU standard for conversion from air to vacuum wavelengths is given
+    # in Morton (1991, ApJS, 77, 119). For vacuum wavelengths (VAC) in
+    # Angstroms, convert to air wavelength (AIR) via:
+
+    #  AIR = VAC / (1.0 + 2.735182E-4 + 131.4182 / VAC^2 + 2.76249E8 / VAC^4)
+    wl = np.array(wavelength)
+
+    wl2inv = (1.e4/wl)**2
+    refracstp = 272.643 + 1.2288 * wl2inv + 3.555e-2 * wl2inv**2
+    return density * refracstp
+
+
 def dopplerShift(wvl, flux, v, edgeHandling=None, fillValue=None):
     """
+    This code is taken from the PyAstronomy project:
+    https://github.com/sczesla/PyAstronomy
+    All credit to the author.
+
+
     Doppler shift a given spectrum.
 
     A simple algorithm to apply a Doppler shift
@@ -166,6 +190,8 @@ if __name__ == '__main__':
         I_mod = fits.getdata(args.model)
         hdr = fits.getheader(args.model)
         w_mod = get_wavelength(hdr)
+        nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
+        w_mod = w_mod / (1 + 1e-6 * nre)
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]

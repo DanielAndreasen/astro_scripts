@@ -202,6 +202,9 @@ if __name__ == '__main__':
         I_mod = I_mod[i]
         I_mod = 10 ** (I_mod - 8.0)  # https://phoenix.ens-lyon.fr/Grids/FORMAT
         I_mod /= np.median(I_mod)
+        # Normalization (use first 50 points below 1.2 as continuum)
+        maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
+        I_mod /= np.median(I_mod[maxes])
         if args.rv1:
             I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=args.rv1,
                                         fill_value=0.95)
@@ -218,7 +221,7 @@ if __name__ == '__main__':
             I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=args.rv2,
                                         fill_value=0.95)
 
-    fig = plt.figure(figsize=(16, 5))
+    fig = plt.figure(figsize=(12, 4))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()

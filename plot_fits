@@ -165,10 +165,10 @@ if __name__ == '__main__':
 
     fname = args.input
     I = fits.getdata(fname)
-    if max(I) < 1.4:
-        I /= 0.95 * max(I)
-    else:
-        I /= np.median(I)
+    I /= np.median(I)
+    # Normalization (use first 50 points below 1.2 as continuum)
+    maxes = I[(I < 1.2)].argsort()[-50:][::-1]
+    I /= np.median(I[maxes])
     hdr = fits.getheader(fname)
 
     if args.rv:

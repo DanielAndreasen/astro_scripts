@@ -221,7 +221,7 @@ if __name__ == '__main__':
             I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=args.rv2,
                                         fill_value=0.95)
 
-    fig = plt.figure(figsize=(12, 4))
+    fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()

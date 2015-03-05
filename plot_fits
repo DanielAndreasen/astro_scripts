@@ -140,7 +140,7 @@ def get_wavelength(hdr):
     """
     w0, dw, n = hdr['CRVAL1'], hdr['CDELT1'], hdr['NAXIS1']
     w1 = w0 + dw * n
-    return np.linspace(w0, w1, n)
+    return np.linspace(w0, w1, n, endpoint=False)
 
 
 def _parser():
@@ -148,27 +148,28 @@ def _parser():
 
     :returns: the args
     """
-    parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be\
-                                     careful with large files')
+    parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be'
+                                     'careful with large files')
     parser.add_argument('input', help='Input fits file')
     parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun ',
                         action='store_true')
     parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum',
                         action='store_true')
-    parser.add_argument('-r', '--rv', help='RV correction to the spectra in\
-                        km/s', default=False, type=float)
-    parser.add_argument('-r1', '--rv1', help='RV correction to the spectra in\
-                        km/s (model/Sun)', default=False, type=float)
-    parser.add_argument('-r2', '--rv2', help='RV correction to the spectra in\
-                        km/s (telluric)', default=False, type=float)
+    parser.add_argument('-r', '--rv', help='RV correction to the spectra in'
+                        'km/s', default=False, type=float)
+    parser.add_argument('-r1', '--rv1', help='RV correction to the spectra in'
+                        'km/s (model/Sun)', default=False, type=float)
+    parser.add_argument('-r2', '--rv2', help='RV correction to the spectra in'
+                        'km/s (telluric)', default=False, type=float)
     parser.add_argument('-l', '--lines',
-                        help='Lines to plot on top (multiple lines is an\
-                        option). If multiple lines needs to be plotted, then\
-                        separate with a space',
+                        help='Lines to plot on top (multiple lines is an'
+                        'option). If multiple lines needs to be plotted, then'
+                        'separate with a space',
                         default=False, nargs='+', type=float)
     parser.add_argument('-m', '--model',
-                        help='If not the Sun shoul be used as a model, put\
-                        the model here (only support BT-Settl for the moment)',
+                        help='If not the Sun shoul be used as a model, put'
+                        'the model here (only support BT-Settl for the'
+                        'moment)',
                         default=False)
     args = parser.parse_args()
     return args

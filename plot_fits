@@ -10,23 +10,23 @@ import matplotlib
 from astropy.io import fits
 import argparse
 
-path = '/home/daniel/Documents/Uni/phdproject/data/'
-pathsun = path + 'atlas/BASS2000/solarspectrum_01.fits'
-pathtel = path + 'HD20010/telluric_NIR.fits'
+path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
+pathsun = path + 'solarspectrum_01.fits'
+pathtel = path + 'telluric_NIR.fits'
 
 
 def nrefrac(wavelength, density=1.0):
-    """
-    Calculate refractive index of air from Cauchy formula. Input:
+    """Calculate refractive index of air from Cauchy formula. Input:
     wavelength in Angstrom, density of air in amagat (relative to STP,
     e.g. ~10% decrease per 1000m above sea level). Returns N = (n-1) *
     1.e6.
-    """
-    # The IAU standard for conversion from air to vacuum wavelengths is given
-    # in Morton (1991, ApJS, 77, 119). For vacuum wavelengths (VAC) in
-    # Angstroms, convert to air wavelength (AIR) via:
 
-    #  AIR = VAC / (1.0 + 2.735182E-4 + 131.4182 / VAC^2 + 2.76249E8 / VAC^4)
+    The IAU standard for conversion from air to vacuum wavelengths is given
+    in Morton (1991, ApJS, 77, 119). For vacuum wavelengths (VAC) in
+    Angstroms, convert to air wavelength (AIR) via:
+
+    AIR = VAC / (1.0 + 2.735182E-4 + 131.4182 / VAC^2 + 2.76249E8 / VAC^4)
+    """
     wl = np.array(wavelength)
 
     wl2inv = (1.e4/wl)**2
@@ -35,13 +35,10 @@ def nrefrac(wavelength, density=1.0):
 
 
 def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
-    """
+    """Doppler shift a given spectrum.
     This code is taken from the PyAstronomy project:
     https://github.com/sczesla/PyAstronomy
     All credit to the author.
-
-
-    Doppler shift a given spectrum.
 
     A simple algorithm to apply a Doppler shift
     to a spectrum. This function, first, calculates
@@ -133,12 +130,24 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
 
 
 def get_wavelength(hdr):
+    """Return the wavelength vector calculated from the header of a FITS
+    file.
+
+    :hdr: Header from a FITS ('CRVAL1', 'CDELT1', and 'NAXIS1' is required as
+            keywords)
+    :returns: Equidistant wavelength vector
+
+    """
     w0, dw, n = hdr['CRVAL1'], hdr['CDELT1'], hdr['NAXIS1']
     w1 = w0 + dw * n
     return np.linspace(w0, w1, n)
 
 
-if __name__ == '__main__':
+def _parser():
+    """Take care of all the argparse stuff.
+
+    :returns: the args
+    """
     parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be\
                                      careful with large files')
     parser.add_argument('input', help='Input fits file')
@@ -159,9 +168,14 @@ if __name__ == '__main__':
                         default=False, nargs='+', type=float)
     parser.add_argument('-m', '--model',
                         help='If not the Sun shoul be used as a model, put\
-                        the model here (only support BT-Settl for the moment.',
+                        the model here (only support BT-Settl for the moment)',
                         default=False)
     args = parser.parse_args()
+    return args
+
+
+if __name__ == '__main__':
+    args = _parser()
 
     fname = args.input
     I = fits.getdata(fname)

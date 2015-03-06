@@ -6,258 +6,169 @@ element, log gf, and EW to a MOOG file for abfind.
 """
 
 # My imports
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 import argparse
-from clint.textui import puts, colored, indent
-
-
-def nlines(file):
-    with open(file, 'r') as lines:
-        for n, _ in enumerate(lines):
-            pass
-    return n + 1
 
 
 def numpy2moog_ew(arr, output=None, header=None):
+    """Script to convert a numpy array to the MOOG format for abfind.
     """
-    Script to convert a numpy array to the MOOG format for abfind.
-    """
-
     if not header:  # Default header
-        header = 'Wavelength\tEle\t  excit\t  log gf\t\t\t EW\n'
-    if not header.endswith('\n'):  # Put a 'newline' character at the end
-        header += '\n'
-    if not output:  # Call the output file for .moog if no output file is given
-        output = arr.split('.')[0] + '.moog'
+        header = 'Wavelength\tEle\t  excit\t  log gf\t\t\t EW'
 
     if isinstance(arr, str):
-        puts('\nInput file: ' + colored.green(arr))
-        puts('Output file: ' + colored.green(output))
-        puts('Header: ' + colored.green(header))
+        if not output:  # Call the output file for .moog
+            tmp = arr.rpartition('.')
+            if tmp[0]:
+                output = '%s.moog' % tmp[0]
+            else:
+                output = '%s.moog' % arr
+        print('Input file: %s' % arr)
         try:
-            test = np.loadtxt(arr, dtype=str, skiprows=1)
-        except ValueError, e:
-            puts(colored.red('Was not able to load ') +
-                 colored.red(arr, bold=True))
-            puts(colored.red('Is there values missing or is the header more than\
-                    one line?'))
-            puts(colored.yellow('\nError message from Numpy:'))
-            with indent(4):
-                puts(colored.yellow('ValueError: ' + str(e)))
-            raise SystemExit
+            data = np.loadtxt(arr, skiprows=header.count('\n') + 1)
+        except ValueError:
+            print('Was not able to load %s' % arr)
+            raise
     elif isinstance(arr, list):
-        test = np.array(arr, dtype=str)
-        test = np.reshape(test, (1, 5))
+        data = np.array(arr, dtype=str)
+        data = np.reshape(data, (1, 5))
+        if not output:
+            print('Need to specify an output')
+            raise SystemExit
     else:
-        puts('Unexpected datatype: ' + colored.red(type(arr)))
+        print('Unexpected datatype: %s' % type(arr))
         raise SystemExit
-    lll = "{wl[0]:>5}.{wl[1]:<3} "
-    lll += "{el[0]:>8}.{el[1]:<1} "
-    lll += "{ex[0]:>6}.{ex[1]:<2} "
-    lll += "{gf[0]:>5}.{gf[1]:<3} "
-    lll += "{ew[0]:>26}.{ew[1]:<1} "
-    ttt = header
+    print('Output file: %s' % output)
+    print('Header: %s' % header)
 
-    # puts(colored.blue('Progress'))
-    for i in range(len(test)):
-        Wl = test[i, 0].split('.')
-        Wl[1] = Wl[1][0:3]
-
-        El = test[i, 1].split('.')
-        El[1] = El[1][0]
-
-        Ex = test[i, 2].split('.')
-        Ex[1] = Ex[1][0:2]
-
-        Gf = test[i, 3].split('.')
-        Gf[1] = Gf[1][0:3]
-
-        Ew = test[i, 4].split('.')
-        Ew[1] = Ew[1][0]
-
-        ttt += lll.format(wl=Wl,
-                          el=El,
-                          ex=Ex,
-                          gf=Gf,
-                          ew=Ew)
-        ttt += '\n'
-
-    with open(output, 'wb') as f:
-        f.write(ttt)
-    # puts('\nOutput file: ' + colored.green(output))
+    fmt_ = ('%9.2f', '%7.1f', '%11.2f', '%10.3f', '%27.1f')
+    np.savetxt(output, data, fmt=fmt_, header=header)
 
 
 def numpy2moog_synth(arr, output=None, header=None):
+    """Script to convert a numpy array to the MOOG format for abfind.
     """
-    Script to convert a numpy array to the MOOG format for abfind.
-    """
-
+    import pandas as pd
     if not header:  # Default header
-        header = 'Wavelength\t   Ele\t  excit\t  log gf\n'
-    if not header.endswith('\n'):  # Put a 'newline' character at the end
-        header += '\n'
-    if not output:  # Call the output file for .moog if no output file is given
-        output = arr.split('.')[0] + '.moog'
-
-    puts('\nInput file: ' + colored.green(arr))
-    puts('Output file: ' + colored.green(output))
-    puts('Header: ' + colored.green(header))
-
-    nrow = nlines(arr) - 1  # We will not have header in our array
-    test = np.zeros([nrow, 5], dtype=np.float)
-
-    with open(arr, 'r') as lines:
-        for i, line in enumerate(lines):
-            if i != 0:
-                ncol = line.count('\t') + 1
-                line = line.strip('\n').split('\t')
-                if ncol == 5:  # with dissociation energy (molecule)
-                    test[i-1] = [str(li) for li in line]
-                elif ncol == 4:
-                    test[i-1] = [str(li) for li in line] + [0.00]
-            else:
-                header = line
-    test = np.array(test, dtype=str)
-
-    # Here is the formating of the file. Change the numbers here to change the
-    # format
-    lll = "{wl[0]:>5}.{wl[1]:<3} "
-    lll += "{el[0]:>5}.{el[1]:<1} "
-    lll += "{ex[0]:>5}.{ex[1]:<2} "
-    lll += "{gf[0]:>9}.{gf[1]:<3} "
-    lll += "{d0[0]:>13}.{d0[1]:<2} "
-    ttt = header
-
-    puts(colored.blue('Progress'))
-    for i in xrange(len(test)):
-        Wl = test[i, 0].split('.')
-        Wl[1] = Wl[1][0:3]
-
-        El = test[i, 1].split('.')
-        El[1] = El[1][0]
-
-        Ex = test[i, 2].split('.')
-        Ex[1] = Ex[1][0:2]
-
-        Gf = test[i, 3].split('.')
-        Gf[1] = Gf[1][0:3]
-
-        D0 = test[i, 4].split('.')
-        D0[1] = D0[1][0:3]
-
-        zzz = lll.format(wl=Wl,
-                         el=El,
-                         ex=Ex,
-                         gf=Gf,
-                         d0=D0).strip(' ')
-
-        if zzz.endswith('0.0'):
-            zzz = zzz[0:-3].strip(' ')
-        ttt += zzz + '\n'
-
-    with open(output, 'wb') as f:
-        f.write(ttt)
-    puts('\nOutput file: ' + colored.green(output))
-
-
-def vald2numpy(input, output=None):
-    """
-    Converts the VALD output to a numpy array with only the name,
-    wavelength, excitation potential, and log gf
-    """
-
-    try:
-        from periodic.table import element
-    except ImportError, e:
-        puts(colored.yellow('Could not import ') + colored.red('periodic',
-             bold=True))
-        puts(colored.green('Install with: pip install periodic'))
-        raise SystemExit
-
-    if not output:  # Call the output file for .moog if no output file is given
-        output = input.split('.')[0] + '.npy'
-
-    with open(input, 'r') as f:
-        newFile = ''
-        for line in f:
-            if line.startswith('#') or line.startswith('*'):
-                pass
-            else:
-                newFile += line
-    with open(input, 'w') as f:
-        f.write(newFile)
-
-    f = np.loadtxt(input,
-                   dtype={'names': ('elements', 'w', 'excit', 'loggf'),
-                          'formats': ('S4', 'f4', 'f4', 'f4')},
-                   comments='#',
-                   delimiter=',',
-                   usecols=(0, 1, 2, 3)
-                   )
-
-    mol1 = ['CH', 'OH', 'C2', 'CN', 'CO']
-    mol2 = ['106', '108', '606', '607', '608']
-    mol3 = [3.47, 4.395, 6.25, 7.5, 11.09]
-    mol = dict(zip(mol1, [m for m in zip(mol2, mol3)]))
-
-    numpy_out = 'Wavelength\tEle\tExcit\tloggf\t\tD0\n'
-    for e, w, ex, l in zip(f['elements'], f['w'], f['excit'], f['loggf']):
-        w = str(round(w, 3)).ljust(9, '0')
-        iso = e[-1]
-        e = e[:-1].strip(' ')
-        if e in mol.keys():
-            ele_moog = mol[e][0] + '.' + str(int(iso)-1)
-            l = str(l).ljust(6, '0')
-            z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
+        header = 'Wavelength\t   Ele\t  excit\t  log gf\t   D0'
+    if not output:  # Call the output file for .moog
+        tmp = arr.rpartition('.')
+        if tmp[0]:
+            output = '%s.moog' % tmp[0]
         else:
-            try:
-                t = element(e)
-                ele_moog = str(t.atomic) + '.' + str(int(iso)-1)
-                l = str(l).ljust(6, '0')
-                z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
-            except AttributeError, E:
-                puts('The following element does not exist in the dictionary'
-                     'yet: ' + colored.red(e, bold=True))
-                raise E
+            output = '%s.moog' % arr
 
-        numpy_out += z
-
-    with open(output, 'wb') as f:
-        f.write(numpy_out)
-
-    puts('Output file: ' + colored.green(output))
+    df = pd.read_csv(arr, sep='\s+')
+    fmt_ = ('%9.3f', '%7.1f', '%8.2f', '%13.3f', '%16.2f')
+    np.savetxt(output, df.values, fmt=fmt_, header=header)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Numpy to moog readable\
-    converter for the abfind routine.')
+# def vald2numpy(input, output=None):
+#     """Converts the VALD output to a numpy array with only the name,
+#     wavelength, excitation potential, and log gf
+#     """
+
+#     try:
+#         from periodic.table import element
+#     except ImportError, e:
+#         print(colored.yellow('Could not import ') + colored.red('periodic',
+#               bold=True))
+#         print(colored.green('Install with: pip install periodic'))
+#         raise SystemExit
+
+#     if not output:  # Call the output file for .moog if no output file is given
+#         output = input.split('.')[0] + '.npy'
+
+#     with open(input, 'r') as f:
+#         newFile = ''
+#         for line in f:
+#             if line.startswith('#') or line.startswith('*'):
+#                 pass
+#             else:
+#                 newFile += line
+#     with open(input, 'w') as f:
+#         f.write(newFile)
+
+#     f = np.loadtxt(input,
+#                    dtype={'names': ('elements', 'w', 'excit', 'loggf'),
+#                           'formats': ('S4', 'f4', 'f4', 'f4')},
+#                    comments='#',
+#                    delimiter=',',
+#                    usecols=(0, 1, 2, 3)
+#                    )
+
+#     mol1 = ['CH', 'OH', 'C2', 'CN', 'CO']
+#     mol2 = ['106', '108', '606', '607', '608']
+#     mol3 = [3.47, 4.395, 6.25, 7.5, 11.09]
+#     mol = dict(zip(mol1, [m for m in zip(mol2, mol3)]))
+
+#     numpy_out = 'Wavelength\tEle\tExcit\tloggf\t\tD0\n'
+#     for e, w, ex, l in zip(f['elements'], f['w'], f['excit'], f['loggf']):
+#         w = str(round(w, 3)).ljust(9, '0')
+#         iso = e[-1]
+#         e = e[:-1].strip(' ')
+#         if e in mol.keys():
+#             ele_moog = mol[e][0] + '.' + str(int(iso)-1)
+#             l = str(l).ljust(6, '0')
+#             z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
+#         else:
+#             try:
+#                 t = element(e)
+#                 ele_moog = str(t.atomic) + '.' + str(int(iso)-1)
+#                 l = str(l).ljust(6, '0')
+#                 z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
+#             except AttributeError, E:
+#                 print('The following element does not exist in the dictionary'
+#                       'yet: ' + colored.red(e, bold=True))
+#                 raise E
+
+#         numpy_out += z
+
+#     with open(output, 'wb') as f:
+#         f.write(numpy_out)
+
+#     print('Output file: ' + colored.green(output))
+
+
+def _parser():
+    """Take care of all the argparse stuff.
+
+    :returns: the args
+    """
+    parser = argparse.ArgumentParser(description='Numpy to moog readable'
+                                     'converter for the abfind routine.')
     parser.add_argument('input', help='Input numpy file')
     parser.add_argument('-m', '--mode',
                         default='ew',
-                        help='Which function to evoke [ew|synth|asc].\
-                              ew: converts an ASCII array to a MOOG EW array.\
-                              synth: converts an ASCII array to a MOOG\
-                              synthesis array.\
-                              asc: converts a VALD array to a ASCII array.')
+                        help='Which function to evoke [ew|synth|asc].'
+                              'ew: converts an ASCII array to a MOOG EW array.'
+                              'synth: converts an ASCII array to a MOOG'
+                              'synthesis array.'
+                              'asc: converts a VALD array to a ASCII array.')
 
     parser.add_argument('-o', '--output',
                         default=None,
-                        help='Output file, if not an extension is specified\
-                              will be .moog or .vald depending on the mode.')
+                        help='Output file, if not an extension is specified'
+                              'will be .moog or .vald depending on the mode.')
 
     parser.add_argument('-H', '--header',
                         default=None,
-                        help='The header for the file. If not given, a\
-                              standard header will be provided')
+                        help='The header for the file. If not given, a'
+                             'standard header will be provided')
     args = parser.parse_args()
+    return args
+
+
+if __name__ == '__main__':
+    args = _parser()
 
     # Always add a .moog to the output if none extension is provided.
-    if args.mode == 'asc':
-        vald2numpy(args.input, args.output)
-
     if args.mode == 'ew':
         numpy2moog_ew(args.input, args.output, args.header)
 
     if args.mode == 'synth':
         numpy2moog_synth(args.input, args.output, args.header)
+
+    if args.mode == 'asc':
+        vald2numpy(args.input, args.output)

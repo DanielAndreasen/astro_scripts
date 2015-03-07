@@ -24,7 +24,6 @@ def numpy2moog_ew(arr, output=None, header=None):
                 output = '%s.moog' % tmp[0]
             else:
                 output = '%s.moog' % arr
-        print('Input file: %s' % arr)
         try:
             data = np.loadtxt(arr, skiprows=header.count('\n') + 1)
         except ValueError:
@@ -39,15 +38,16 @@ def numpy2moog_ew(arr, output=None, header=None):
     else:
         print('Unexpected datatype: %s' % type(arr))
         raise SystemExit
-    print('Output file: %s' % output)
-    print('Header: %s' % header)
 
     fmt_ = ('%9.2f', '%7.1f', '%11.2f', '%10.3f', '%27.1f')
     np.savetxt(output, data, fmt=fmt_, header=header)
+    print('Output file: %s' % output)
 
 
 def numpy2moog_synth(arr, output=None, header=None):
     """Script to convert a numpy array to the MOOG format for abfind.
+    Most of this script is from:
+    http://stackoverflow.com/questions/28885617/read-and-save-data-file-with-variable-number-of-columns-in-python
     """
     import pandas as pd
     if not header:  # Default header
@@ -60,75 +60,82 @@ def numpy2moog_synth(arr, output=None, header=None):
             output = '%s.moog' % arr
 
     df = pd.read_csv(arr, sep='\s+')
-    fmt_ = ('%9.3f', '%7.1f', '%8.2f', '%13.3f', '%16.2f')
-    np.savetxt(output, df.values, fmt=fmt_, header=header)
+
+    formatters = ['{: >8.3f}'.format, '{: >6.1f}'.format,
+                  '{: >8.2f}'.format, '{: >13.3f}'.format,
+                  lambda x: ' '*15 if np.isnan(x) else '{: >10.1f}'.format(x)]
+    lines = df.to_string(index=False, header=header, formatters=formatters)
+
+    with open(output, 'w') as f:
+        f.write(lines + '\n')
 
 
-# def vald2numpy(input, output=None):
-#     """Converts the VALD output to a numpy array with only the name,
-#     wavelength, excitation potential, and log gf
-#     """
+def vald2numpy(input, output=None):
+    """Converts the VALD output to a numpy array with only the name,
+    wavelength, excitation potential, and log gf
+    """
 
-#     try:
-#         from periodic.table import element
-#     except ImportError, e:
-#         print(colored.yellow('Could not import ') + colored.red('periodic',
-#               bold=True))
-#         print(colored.green('Install with: pip install periodic'))
-#         raise SystemExit
+    try:
+        from periodic.table import element
+    except ImportError:
+        print('Could not import periodic')
+        print('Install with: pip install periodic')
+        raise SystemExit
 
-#     if not output:  # Call the output file for .moog if no output file is given
-#         output = input.split('.')[0] + '.npy'
+    if not output:  # Call the output file for .moog
+        tmp = input.rpartition('.')
+        if tmp[0]:
+            output = '%s.npy' % tmp[0]
+        else:
+            output = '%s.npy' % input
 
-#     with open(input, 'r') as f:
-#         newFile = ''
-#         for line in f:
-#             if line.startswith('#') or line.startswith('*'):
-#                 pass
-#             else:
-#                 newFile += line
-#     with open(input, 'w') as f:
-#         f.write(newFile)
+    with open(input, 'r') as lines:
+        newFile = ''
+        for line in lines:
+            if line.startswith('#') or line.startswith('*'):
+                pass
+            else:
+                newFile += line
+    with open(input, 'w') as f:
+        f.write(newFile)
 
-#     f = np.loadtxt(input,
-#                    dtype={'names': ('elements', 'w', 'excit', 'loggf'),
-#                           'formats': ('S4', 'f4', 'f4', 'f4')},
-#                    comments='#',
-#                    delimiter=',',
-#                    usecols=(0, 1, 2, 3)
-#                    )
+    f = np.loadtxt(input,
+                   dtype={'names': ('elements', 'w', 'excit', 'loggf'),
+                          'formats': ('S4', 'f4', 'f4', 'f4')},
+                   comments='#',
+                   delimiter=',',
+                   usecols=(0, 1, 2, 3))
 
-#     mol1 = ['CH', 'OH', 'C2', 'CN', 'CO']
-#     mol2 = ['106', '108', '606', '607', '608']
-#     mol3 = [3.47, 4.395, 6.25, 7.5, 11.09]
-#     mol = dict(zip(mol1, [m for m in zip(mol2, mol3)]))
+    mol1 = ['CH', 'OH', 'C2', 'CN', 'CO']
+    mol2 = ['106', '108', '606', '607', '608']
+    mol3 = [3.47, 4.395, 6.25, 7.5, 11.09]
+    mol = dict(zip(mol1, [m for m in zip(mol2, mol3)]))
 
-#     numpy_out = 'Wavelength\tEle\tExcit\tloggf\t\tD0\n'
-#     for e, w, ex, l in zip(f['elements'], f['w'], f['excit'], f['loggf']):
-#         w = str(round(w, 3)).ljust(9, '0')
-#         iso = e[-1]
-#         e = e[:-1].strip(' ')
-#         if e in mol.keys():
-#             ele_moog = mol[e][0] + '.' + str(int(iso)-1)
-#             l = str(l).ljust(6, '0')
-#             z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
-#         else:
-#             try:
-#                 t = element(e)
-#                 ele_moog = str(t.atomic) + '.' + str(int(iso)-1)
-#                 l = str(l).ljust(6, '0')
-#                 z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
-#             except AttributeError, E:
-#                 print('The following element does not exist in the dictionary'
-#                       'yet: ' + colored.red(e, bold=True))
-#                 raise E
+    numpy_out = 'Wavelength\tEle\tExcit\tloggf\t\tD0\n'
+    for e, w, ex, l in zip(f['elements'], f['w'], f['excit'], f['loggf']):
+        w = str(round(w, 3)).ljust(9, '0')
+        iso = e[-1]
+        e = e[:-1].strip(' ')
+        if e in mol.keys():
+            ele_moog = '%s.%s' % (mol[e][0], str(int(iso)-1))
+            l = str(l).ljust(6, '0')
+            z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
+        else:
+            try:
+                t = element(e)
+                ele_moog = str(t.atomic) + '.' + str(int(iso)-1)
+                l = str(l).ljust(6, '0')
+                z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
+            except AttributeError:
+                print('The following element does not exist in the dictionary'
+                      'yet: %s' % e)
+                raise
 
-#         numpy_out += z
+        numpy_out += z
 
-#     with open(output, 'wb') as f:
-#         f.write(numpy_out)
-
-#     print('Output file: ' + colored.green(output))
+    with open(output, 'w') as f:
+        f.write(numpy_out)
+    print('Output file: %s' % output)
 
 
 def _parser():

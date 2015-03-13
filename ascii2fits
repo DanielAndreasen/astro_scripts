@@ -1,0 +1,58 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
+
+from astropy.io import fits
+import numpy as np
+import glob
+import sys
+from scipy.interpolate import interp1d
+import argparse
+
+
+def convert2fits(fname, fout=None, dA=0.01):
+    """Convert a 2-column ASCII to fits format for splot@IRAF or ARES.
+
+    :fname: File name of ASCII. First column is wavelength and second column is
+    intensity.
+    :fout: Output name. By default it returns the output is the ASCII name with
+    a fits extension.
+    :dA: The wavelength step. 0.01 Angstrom by default.
+    """
+
+    if not fout:
+        fout = fname.rpartition('.')[0] + '.fits'
+
+    ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
+    N = int((ll[-1]-ll[0])/dA)
+
+    flux_int_func = interp1d(ll, flux, kind='linear')
+    ll_int = np.arange(N)*dA+ll[0]
+    flux_int = flux_int_func(ll_int)
+    prihdr = fits.Header()
+    prihdr["NAXIS1"] = N
+    prihdr["CDELT1"] = dA
+    prihdr["CRVAL1"] = ll[0]
+
+    fits.writeto(fout, flux_int, prihdr, clobber=True)
+
+
+def _parser():
+    parser = argparse.ArgumentParser(description='Convert a 2-column ASCII'
+                                     'with wavelength and intensity to a 1D'
+                                     'spectra for splot@IRAF or ARES')
+    parser.add_argument('input', help='File name of ASCII file')
+    parser.add_argument('-o', '--output', help='File name of output. Default'
+                                               'is the ASCII name with a .fits'
+                                               'extension',
+                        default=None)
+    parser.add_argument('-d', '--delta', help='Wavelength step (default:'
+                                              ' 0.01A)',
+                        default=0.01, type=float)
+    args = parser.parse_args()
+    return args
+
+if __name__ == '__main__':
+    args = _parser()
+
+    convert2fits(args.input, args.output, args.delta)

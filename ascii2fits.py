@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
+from __future__ import print_function
 from astropy.io import fits
 import numpy as np
 from scipy.interpolate import interp1d
 import argparse
 
 
-def convert2fits(fname, fout=None, dA=0.01):
+def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
     """Convert a 2-column ASCII to fits format for splot@IRAF or ARES.
 
     :fname: File name of ASCII. First column is wavelength and second column is
@@ -15,12 +16,19 @@ def convert2fits(fname, fout=None, dA=0.01):
     :fout: Output name. By default it returns the output is the ASCII name with
     a fits extension.
     :dA: The wavelength step. 0.01 Angstrom by default.
+    :read: If True, the data will be read from file, fname. If False, fname
+    should contain the wavelength and flux vector
     """
 
     if not fout:
         fout = fname.rpartition('.')[0] + '.fits'
 
-    ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
+    if read:
+        ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
+    else:
+        ll, flux = fname
+    if unit == 'n':
+        ll *= 10
     N = int((ll[-1]-ll[0])/dA)
 
     flux_int_func = interp1d(ll, flux, kind='linear')
@@ -46,10 +54,16 @@ def _parser():
     parser.add_argument('-d', '--delta', help='Wavelength step (default:'
                                               ' 0.01A)',
                         default=0.01, type=float)
+    parser.add_argument('-u', '--unit', help='Unit of wavelength vector '
+                                             '(default: AA)',
+                        default='a')
     args = parser.parse_args()
     return args
 
 if __name__ == '__main__':
     args = _parser()
 
-    convert2fits(args.input, args.output, args.delta)
+    if args.unit not in ('a', 'n'):
+        raise ValueError(r'Unit can be a (Å) or n (nm)')
+
+    convert2fits(args.input, args.output, args.delta, args.unit)

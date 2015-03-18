@@ -7,6 +7,7 @@ element, log gf, and EW to a MOOG file for abfind.
 
 # My imports
 from __future__ import division, print_function
+import os
 import numpy as np
 import argparse
 
@@ -63,11 +64,13 @@ def numpy2moog_synth(arr, output=None, header=None):
 
     formatters = ['{: >8.3f}'.format, '{: >6.1f}'.format,
                   '{: >8.2f}'.format, '{: >13.3f}'.format,
-                  lambda x: ' '*15 if np.isnan(x) else '{: >10.1f}'.format(x)]
+                  lambda x: ' '*16 if np.isnan(x) else '{: >11.2f}'.format(x)]
     lines = df.to_string(index=False, header=header, formatters=formatters)
 
     with open(output, 'w') as f:
         f.write(lines + '\n')
+    # Remove trailing whitespaces with sed (see SO)
+    os.system("sed -i 's/[ \t]*$//' %s" % output)
 
 
 def vald2numpy(input, output=None):

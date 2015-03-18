@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 # My imports
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 import argparse
 
@@ -20,9 +20,10 @@ def ll_filter(fname, col, limit, sign, element):
 
     return data[:, i].T
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Filter the linelist by a\
-    column and an upper limit')
+
+def _parser():
+    parser = argparse.ArgumentParser(description='Filter the linelist by a'
+                                                 'column and an upper limit')
     parser.add_argument('input', help='Input linelist')
     parser.add_argument('col', help='Column to be sorted (starting at 0)',
                         type=int)
@@ -38,6 +39,11 @@ if __name__ == '__main__':
                                                  lines will not be removed.',
                         default=None, type=float)
     args = parser.parse_args()
+    return args
+
+
+if __name__ == '__main__':
+    args = _parser()
 
     fname = args.input
     col = args.col
@@ -52,7 +58,7 @@ if __name__ == '__main__':
         output = args.output
 
     data = ll_filter(fname, col, limit, sign, element)
-    print 'Result saved in %s' % output
+    print('Result saved in %s' % output)
     np.savetxt(output, data, fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f',
                                   '%28.1f'),
                header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',

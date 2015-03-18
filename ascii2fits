@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-
 from astropy.io import fits
 import numpy as np
-import glob
-import sys
 from scipy.interpolate import interp1d
 import argparse
 

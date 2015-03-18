@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-
+from __future__ import print_function
 from astropy.io import fits
 import numpy as np
 from scipy.interpolate import interp1d
 import argparse
 
 
-def convert2fits(fname, fout=None, dA=0.01, unit='a'):
+def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
     """Convert a 2-column ASCII to fits format for splot@IRAF or ARES.
 
     :fname: File name of ASCII. First column is wavelength and second column is
@@ -16,12 +16,17 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a'):
     :fout: Output name. By default it returns the output is the ASCII name with
     a fits extension.
     :dA: The wavelength step. 0.01 Angstrom by default.
+    :read: If True, the data will be read from file, fname. If False, fname
+    should contain the wavelength and flux vector
     """
 
     if not fout:
         fout = fname.rpartition('.')[0] + '.fits'
 
-    ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
+    if read:
+        ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
+    else:
+        ll, flux = fname
     if unit == 'n':
         ll *= 10
     N = int((ll[-1]-ll[0])/dA)

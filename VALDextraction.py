@@ -2,7 +2,7 @@
 # -*- coding: utf8 -*-
 
 # My imports
-from __future__ import division
+from __future__ import division, print_function
 import argparse
 import os
 
@@ -26,11 +26,9 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
 
     dw = step
     if wavelengths:
-        assert hasattr(wavelengths, '__iter__'), wavelengths + 'is not iterable'
-        from progressbar import ProgressBar
+        assert hasattr(wavelengths, '__iter__'), '%s is not iterable' % wavelengths
 
-        progress = ProgressBar()
-        for wavelength in progress(wavelengths):
+        for wavelength in wavelengths:
             line_interval = str(wavelength-step)+', '+str(wavelength+step)+'\n'
             request = request_header
             request += line_interval
@@ -67,22 +65,23 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
         os.system('rm -f tmp.mail')
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Prepare emails with\
-                                     Thunderbird for VALD.')
-    parser.add_argument('-w', '--wavelength', required=False,
-                        help='The central wavelength')
-    parser.add_argument('-l', '--list', required=False,
+def _parser():
+    parser = argparse.ArgumentParser(description='Prepare emails with'
+                                     'Thunderbird for VALD.')
+    parser.add_argument('-w', '--wavelength', help='The central wavelength',
+                        type=float)
+    parser.add_argument('-l', '--list', required=False, nargs='+', type=float,
                         help='A list of wavelengths to be itereated over')
-    parser.add_argument('-s', '--step', required=False,
+    parser.add_argument('-s', '--step', default=1, type=float,
                         help='The wavelength window, twice the size of the\
                               step.')
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    if not args.step:
-        args.step = 1
+
+if __name__ == '__main__':
+    args = _parser()
 
     if args.wavelength:
-        VALDmail(wavelength=float(args.wavelength), step=float(args.step))
+        VALDmail(wavelength=args.wavelength, step=args.step)
     elif args.list:
         VALDmail(step=args.step, wavelengths=args.list)

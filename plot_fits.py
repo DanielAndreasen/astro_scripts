@@ -2,14 +2,13 @@
 # -*- coding: utf8 -*-
 
 # My imports
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
-import scipy
-from scipy.interpolate import splrep, splev
 import scipy.interpolate as sci
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
+from astropy.modeling import models, fitting
 import argparse
 
 path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
@@ -27,21 +26,34 @@ def ccf(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     """
 
     # Calculate the cross correlation
+    s = False
     w, f = spectrum1
     tw, tf = spectrum2
     c = 299792.458
     drvs = np.arange(rvmin, rvmax, drv)
     cc = np.zeros(len(drvs))
-    n = len(w)
-    n5 = int(0.10*n)
     for i, rv in enumerate(drvs):
         fi = sci.interp1d(tw * (1.0 + rv/c), tf)
         # Shifted template evaluated at location of spectrum
-        cc[i] = np.sum(f * fi(w))
-    plt.plot(drvs, cc)
-    plt.show()
-    return 55
-    # return drvs, cc
+        try:
+            fiw = fi(w)
+        except ValueError:
+            s = True
+            pass
+        cc[i] = np.sum(f * fiw)
+
+    if s:
+        print('Warning: You should lower the bounds on RV')
+    # Fit the CCF with a gaussian
+    ampl = max(cc)
+    mean = cc[cc == ampl]
+    I = np.where(cc == ampl)[0]
+    g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=1)
+    fit_g = fitting.LevMarLSQFitter()
+    g = fit_g(g_init, drvs[I-30:I+30], cc[I-30:I+30])
+
+    RV = drvs[g(cc) == max(g(cc))][0]
+    return RV, drvs, cc
 
 
 def nrefrac(wavelength, density=1.0):
@@ -282,20 +294,19 @@ if __name__ == '__main__':
         if args.telluric and args.sun:
             I_sun = I_sun / I_tel  # remove tellurics from the Solar spectrum
         if args.ccf in 's2' and args.sun:
-            rv1 = ccf((w, I), (w_sun, I_sun))
+            rv1, r_sun, c_sun = ccf((w, -I+1), (w_sun, -I_sun+1))
             I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
                                         fill_value=0.95)
         if args.ccf in 'm2' and args.model:
-            rv1 = ccf((w, I), (w_mod, I_mod))
+            rv1, r_mod, c_mod = ccf((w, -I+1), (w_mod, -I_mod+1))
             I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
                                         fill_value=0.95)
 
         if args.ccf in 't2' and args.telluric:
-            rv2 = ccf((w, -I+1), (w_tel, -I_tel+1))
+            rv2, r_tel, c_mod = ccf((w, -I+1), (w_tel, -I_tel+1))
             I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
                                         fill_value=0.95)
 
-    raise SystemExit
     fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
@@ -317,6 +328,7 @@ if __name__ == '__main__':
         ax.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax.set_xlabel('Wavelength')
     ax.set_ylabel('"Normalized" intensity')
+
     if args.rv:
         ax.set_title(fname + '\nRV correction: ' + str(args.rv) + ' km/s')
     elif args.rv1 and args.rv2:
@@ -326,6 +338,15 @@ if __name__ == '__main__':
         ax.set_title('%s\nSun/model: %s km/s' % (fname, args.rv1))
     elif not args.rv1 and args.rv2:
         ax.set_title('%s\nTelluric: %s km/s' % (fname, args.rv2))
+    elif args.ccf == 'm':
+        ax.set_title('%s\nModel: %s km/s' % (fname, rv1))
+    elif args.ccf == 's':
+        ax.set_title('%s\nSun: %s km/s' % (fname, rv1))
+    elif args.ccf == 't':
+        ax.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
+    elif args.ccf == '2':
+        ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
+                     rv1, rv2))
     else:
         ax.set_title(fname)
     if args.sun or args.telluric:

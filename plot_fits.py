@@ -4,6 +4,8 @@
 # My imports
 from __future__ import division
 import numpy as np
+import scipy
+from scipy.interpolate import splrep, splev
 import scipy.interpolate as sci
 import matplotlib.pyplot as plt
 import matplotlib
@@ -13,6 +15,33 @@ import argparse
 path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
 pathsun = path + 'solarspectrum_01.fits'
 pathtel = path + 'telluric_NIR.fits'
+
+
+def ccf(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
+    """Make a CCF between 2 spectra and find the RV
+
+    :spectrum1: The stellar spectrum
+    :spectrum2: The model, sun or telluric
+    :dv: The velocity step
+    :returns: The RV shift
+    """
+
+    # Calculate the cross correlation
+    w, f = spectrum1
+    tw, tf = spectrum2
+    c = 299792.458
+    drvs = np.arange(rvmin, rvmax, drv)
+    cc = np.zeros(len(drvs))
+    n = len(w)
+    n5 = int(0.10*n)
+    for i, rv in enumerate(drvs):
+        fi = sci.interp1d(tw * (1.0 + rv/c), tf)
+        # Shifted template evaluated at location of spectrum
+        cc[i] = np.sum(f * fi(w))
+    plt.plot(drvs, cc)
+    plt.show()
+    return 55
+    # return drvs, cc
 
 
 def nrefrac(wavelength, density=1.0):
@@ -94,9 +123,10 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
   """
     # Shifted wavelength axis
     wlprime = wvl * (1.0 + v/299792.458)
+    i = np.argmin(abs(wvl - 12780.6))
 
     f = sci.interp1d(wlprime, flux, bounds_error=False, fill_value=np.nan)
-    nflux = f(wvl)
+    nflux = f(wlprime)
 
     if edgeHandling == "firstlast":
         firsts = []
@@ -149,7 +179,7 @@ def _parser():
     :returns: the args
     """
     parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be'
-                                     'careful with large files')
+                                     ' careful with large files')
     parser.add_argument('input', help='Input fits file')
     parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun ',
                         action='store_true')
@@ -163,20 +193,25 @@ def _parser():
                         'km/s (telluric)', default=False, type=float)
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an'
-                        'option). If multiple lines needs to be plotted, then'
-                        'separate with a space',
+                        ' option). If multiple lines needs to be plotted, then'
+                        ' separate with a space',
                         default=False, nargs='+', type=float)
     parser.add_argument('-m', '--model',
                         help='If not the Sun shoul be used as a model, put'
-                        'the model here (only support BT-Settl for the'
-                        'moment)',
+                        ' the model here (only support BT-Settl for the'
+                        ' moment)',
                         default=False)
+    parser.add_argument('-c', '--ccf', default='0',
+                        choices=['s', 'm', 't', '2'],
+                        help='Calculate the CCF for Sun/model or tellurics '
+                             'or both.')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
     args = _parser()
+    # print(args)
 
     fname = args.input
     I = fits.getdata(fname)
@@ -185,6 +220,7 @@ if __name__ == '__main__':
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
     hdr = fits.getheader(fname)
+    dw = 10  # Some extra coverage for RV shifts
 
     if args.rv:
         rv = args.rv
@@ -192,7 +228,7 @@ if __name__ == '__main__':
         I, w = dopplerShift(wvl=w, flux=I, v=rv, fill_value=0.95)
     else:
         w = get_wavelength(hdr)
-    w0, w1 = w[0], w[-1]
+    w0, w1 = w[0] - dw, w[-1] + dw
 
     if args.sun and not args.model:
         I_sun = fits.getdata(pathsun)
@@ -202,7 +238,9 @@ if __name__ == '__main__':
         w_sun = w_sun[i]
         I_sun = I_sun[i]
         I_sun /= np.median(I_sun)
-        if args.rv1:
+        if args.ccf in 's2' and args.rv1:
+            print('Warning: RV set for Sun. Calculate RV with CCF')
+        if args.rv1 and not (args.ccf in 's2'):
             I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=args.rv1,
                                         fill_value=0.95)
 
@@ -220,7 +258,9 @@ if __name__ == '__main__':
         # Normalization (use first 50 points below 1.2 as continuum)
         maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
         I_mod /= np.median(I_mod[maxes])
-        if args.rv1:
+        if args.ccf in 'm2' and args.rv1:
+            print('Warning: RV set for model. Calculate RV with CCF')
+        if args.rv1 and not (args.ccf in 'm2'):
             I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=args.rv1,
                                         fill_value=0.95)
 
@@ -232,10 +272,30 @@ if __name__ == '__main__':
         w_tel = w_tel[i]
         I_tel = I_tel[i]
         I_tel /= np.median(I_tel)
-        if args.rv2:
+        if args.ccf in 't2' and args.rv2:
+            print('Warning: RV set for telluric, Calculate RV with CCF')
+        if args.rv2 and not (args.ccf in 't2'):
             I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=args.rv2,
                                         fill_value=0.95)
 
+    if args.ccf != '0':
+        if args.telluric and args.sun:
+            I_sun = I_sun / I_tel  # remove tellurics from the Solar spectrum
+        if args.ccf in 's2' and args.sun:
+            rv1 = ccf((w, I), (w_sun, I_sun))
+            I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
+                                        fill_value=0.95)
+        if args.ccf in 'm2' and args.model:
+            rv1 = ccf((w, I), (w_mod, I_mod))
+            I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
+                                        fill_value=0.95)
+
+        if args.ccf in 't2' and args.telluric:
+            rv2 = ccf((w, -I+1), (w_tel, -I_tel+1))
+            I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
+                                        fill_value=0.95)
+
+    raise SystemExit
     fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()

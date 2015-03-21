@@ -8,7 +8,6 @@ import scipy.interpolate as sci
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
-from astropy.modeling import models, fitting
 import argparse
 
 path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
@@ -252,7 +251,7 @@ if __name__ == '__main__':
         I_sun /= np.median(I_sun)
         if args.ccf in 's2' and args.rv1:
             print('Warning: RV set for Sun. Calculate RV with CCF')
-        if args.rv1 and not (args.ccf in 's2'):
+        if args.rv1 and args.ccf not in 's2':
             I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=args.rv1,
                                         fill_value=0.95)
 
@@ -272,7 +271,7 @@ if __name__ == '__main__':
         I_mod /= np.median(I_mod[maxes])
         if args.ccf in 'm2' and args.rv1:
             print('Warning: RV set for model. Calculate RV with CCF')
-        if args.rv1 and not (args.ccf in 'm2'):
+        if args.rv1 and args.ccf not in 'm2':
             I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=args.rv1,
                                         fill_value=0.95)
 
@@ -286,35 +285,38 @@ if __name__ == '__main__':
         I_tel /= np.median(I_tel)
         if args.ccf in 't2' and args.rv2:
             print('Warning: RV set for telluric, Calculate RV with CCF')
-        if args.rv2 and not (args.ccf in 't2'):
+        if args.rv2 and args.ccf not in 't2':
             I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=args.rv2,
                                         fill_value=0.95)
 
     if args.ccf != '0':
+        from astropy.modeling import models, fitting
+
         if args.telluric and args.sun:
             I_sun = I_sun / I_tel  # remove tellurics from the Solar spectrum
+
         if args.ccf in 's2' and args.sun:
             rv1, r_sun, c_sun = ccf((w, -I+1), (w_sun, -I_sun+1))
-            I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
-                                        fill_value=0.95)
+            I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
+
         if args.ccf in 'm2' and args.model:
             rv1, r_mod, c_mod = ccf((w, -I+1), (w_mod, -I_mod+1))
-            I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
-                                        fill_value=0.95)
+            I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
 
         if args.ccf in 't2' and args.telluric:
             rv2, r_tel, c_mod = ccf((w, -I+1), (w_tel, -I_tel+1))
-            I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
-                                        fill_value=0.95)
+            I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
 
     fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()
+
     ax = fig.add_subplot(111)
     # Use nice numbers on x axis (y axis is normalized)...
     x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
     ax.xaxis.set_major_formatter(x_formatter)
+
     if args.sun and not args.model:
         ax.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
     if args.telluric:
@@ -330,7 +332,7 @@ if __name__ == '__main__':
     ax.set_ylabel('"Normalized" intensity')
 
     if args.rv:
-        ax.set_title(fname + '\nRV correction: ' + str(args.rv) + ' km/s')
+        ax.set_title('%s\nRV correction: %s km/s' % (fname, args.rv))
     elif args.rv1 and args.rv2:
         ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
                      args.rv1, args.rv2))
@@ -339,16 +341,16 @@ if __name__ == '__main__':
     elif not args.rv1 and args.rv2:
         ax.set_title('%s\nTelluric: %s km/s' % (fname, args.rv2))
     elif args.ccf == 'm':
-        ax.set_title('%s\nModel: %s km/s' % (fname, rv1))
+        ax.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
     elif args.ccf == 's':
-        ax.set_title('%s\nSun: %s km/s' % (fname, rv1))
+        ax.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
     elif args.ccf == 't':
-        ax.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
+        ax.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
     elif args.ccf == '2':
-        ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
-                     rv1, rv2))
+        ax.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' %
+                     (fname, rv1, rv2))
     else:
         ax.set_title(fname)
-    if args.sun or args.telluric:
+    if args.sun or args.telluric or args.model:
         ax.legend(loc=3, frameon=False)
     plt.show()

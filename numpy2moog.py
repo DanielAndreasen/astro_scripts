@@ -67,10 +67,10 @@ def numpy2moog_synth(arr, output=None, header=None):
                   lambda x: ' '*16 if np.isnan(x) else '{: >11.2f}'.format(x)]
     lines = df.to_string(index=False, header=header, formatters=formatters)
 
+    # Write output and remove trailing whitespaces
     with open(output, 'w') as f:
-        f.write(lines + '\n')
-    # Remove trailing whitespaces with sed (see SO)
-    os.system("sed -i 's/[ \t]*$//' %s" % output)
+        for line in lines.split('\n'):
+            f.write(line.rstrip() + '\n')
 
 
 def vald2numpy(input, output=None):

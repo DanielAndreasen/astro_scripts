@@ -273,7 +273,6 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         I_mod = fits.getdata(model)
         hdr = fits.getheader(model)
         w_mod = get_wavelength(hdr)
-        print(w_mod)
         nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
         w_mod = w_mod / (1 + 1e-6 * nre)
         i = (w_mod > w0) & (w_mod < w1)

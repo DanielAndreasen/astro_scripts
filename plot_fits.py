@@ -30,7 +30,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     w, f = spectrum1
     tw, tf = spectrum2
     if not len(w) or not len(tw):
-        return 0, 0, 0
+        return 0, 0, 0, 0, 0
     c = 299792.458
     drvs = np.arange(rvmin, rvmax, drv)
     cc = np.zeros(len(drvs))
@@ -48,7 +48,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
         print('Warning: You should lower the bounds on RV')
 
     if not np.any(cc):
-        return 0, 0, 0
+        return 0, 0, 0, 0, 0
 
     # Fit the CCF with a gaussian
     cc -= np.mean(cc)
@@ -333,7 +333,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if rv1 != 0:
                 I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1,
                                             fill_value=0.95)
-            rvs['sun'] = rv1
+                rvs['sun'] = rv1
 
         if ccf in 'm2' and model:
             rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I+1),
@@ -341,7 +341,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if rv1 != 0:
                 I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1,
                                             fill_value=0.95)
-            rvs['model'] = rv1
+                rvs['model'] = rv1
 
         if ccf in 't2' and telluric:
             rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I+1),
@@ -349,7 +349,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if rv2 != 0:
                 I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2,
                                             fill_value=0.95)
-            rvs['telluric'] = rv2
+                rvs['telluric'] = rv2
 
     if ccf != '0':
         from matplotlib.gridspec import GridSpec

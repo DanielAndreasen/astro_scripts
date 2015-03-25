@@ -29,6 +29,8 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     s = False
     w, f = spectrum1
     tw, tf = spectrum2
+    if not len(w) or not len(tw):
+        return 0, 0, 0
     c = 299792.458
     drvs = np.arange(rvmin, rvmax, drv)
     cc = np.zeros(len(drvs))
@@ -39,21 +41,39 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
             fiw = fi(w)
         except ValueError:
             s = True
-            pass
+            fiw = 0
         cc[i] = np.sum(f * fiw)
 
     if s:
         print('Warning: You should lower the bounds on RV')
+
+    if not np.any(cc):
+        return 0, 0, 0
+
     # Fit the CCF with a gaussian
-    ampl = max(cc)
-    mean = cc[cc == ampl]
-    I = np.where(cc == ampl)[0]
+    cc -= np.mean(cc)
+    RV, g = _fit_ccf(drvs, cc)
+    return RV, drvs, cc, drvs, g(drvs)
+
+
+def _fit_ccf(rv, ccf):
+    """Fit the CCF with a 1D gaussian
+
+    :rv: The RV vector
+    :ccf: The CCF values
+    :returns: The RV, and best fit gaussian
+
+    """
+    ampl = max(ccf)
+    mean = rv[ccf == ampl]
+    I = np.where(ccf == ampl)[0]
+
     g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=1)
     fit_g = fitting.LevMarLSQFitter()
-    g = fit_g(g_init, drvs[I-30:I+30], cc[I-30:I+30])
+    g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
 
-    RV = drvs[g(cc) == max(g(cc))][0]
-    return RV, drvs, cc
+    RV = rv[g(ccf) == max(g(ccf))][0]
+    return RV, g
 
 
 def nrefrac(wavelength, density=1.0):
@@ -199,11 +219,11 @@ def _parser():
     parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum',
                         action='store_true')
     parser.add_argument('-r', '--rv', help='RV correction to the spectra in'
-                        'km/s', default=False, type=float)
+                        ' km/s', default=False, type=float)
     parser.add_argument('-r1', '--rv1', help='RV correction to the spectra in'
-                        'km/s (model/Sun)', default=False, type=float)
+                        ' km/s (model/Sun)', default=False, type=float)
     parser.add_argument('-r2', '--rv2', help='RV correction to the spectra in'
-                        'km/s (telluric)', default=False, type=float)
+                        ' km/s (telluric)', default=False, type=float)
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an'
                         ' option). If multiple lines needs to be plotted, then'
@@ -215,7 +235,7 @@ def _parser():
                         ' moment)',
                         default=False)
     parser.add_argument('-c', '--ccf', default='0',
-                        choices=['s', 'm', 't', '2'],
+                        choices=['0', 's', 'm', 't', '2'],
                         help='Calculate the CCF for Sun/model or tellurics '
                              'or both.')
     args = parser.parse_args()
@@ -238,13 +258,12 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     :returns: RV if CCF have been calculated
     """
 
-    fname = input
-    I = fits.getdata(fname)
+    I = fits.getdata(input)
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
-    hdr = fits.getheader(fname)
+    hdr = fits.getheader(input)
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:
@@ -309,66 +328,122 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             # remove tellurics from the Solar spectrum
             if telluric and sun:
                 I_sun = I_sun / I_tel
-            rv1, r_sun, c_sun = ccf_astro((w, -I+1), (w_sun, -I_sun+1))
-            I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
+            rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I+1),
+                                                        (w_sun, -I_sun+1))
+            if rv1 != 0:
+                I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1,
+                                            fill_value=0.95)
             rvs['sun'] = rv1
 
         if ccf in 'm2' and model:
-            rv1, r_mod, c_mod = ccf_astro((w, -I+1), (w_mod, -I_mod+1))
-            I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
+            rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I+1),
+                                                        (w_mod, -I_mod+1))
+            if rv1 != 0:
+                I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1,
+                                            fill_value=0.95)
             rvs['model'] = rv1
 
         if ccf in 't2' and telluric:
-            rv2, r_tel, c_mod = ccf_astro((w, -I+1), (w_tel, -I_tel+1))
-            I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
+            rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I+1),
+                                                        (w_tel, -I_tel+1))
+            if rv2 != 0:
+                I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2,
+                                            fill_value=0.95)
             rvs['telluric'] = rv2
 
-    fig = plt.figure(figsize=(16, 5))
+    if ccf != '0':
+        from matplotlib.gridspec import GridSpec
+        fig = plt.figure(figsize=(16, 8))
+        gs = GridSpec(3, 2)
+        gs.update(wspace=0.05, hspace=0.35)
+        ax1 = plt.subplot(gs[:-1, :])
+        if len(rvs) == 1:
+            ax2 = plt.subplot(gs[-1, :])
+            ax2.set_yticklabels([])
+        elif len(rvs) == 2:
+            ax2 = plt.subplot(gs[-1, :-1])
+            ax3 = plt.subplot(gs[-1, -1])
+            ax2.set_yticklabels([])
+            ax3.set_yticklabels([])
+        else:
+            print('No RV calculated')
+    else:
+        fig = plt.figure(figsize=(16, 5))
+        ax1 = fig.add_subplot(111)
+
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()
 
-    ax = fig.add_subplot(111)
     # Use nice numbers on x axis (y axis is normalized)...
     x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
-    ax.xaxis.set_major_formatter(x_formatter)
+    ax1.xaxis.set_major_formatter(x_formatter)
 
     if sun and not model:
-        ax.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
+        ax1.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
     if telluric:
-        ax.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
+        ax1.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
     if model:
-        ax.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
-    ax.plot(w, I, '-k', lw=2, label='Star')
+        ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
+    ax1.plot(w, I, '-k', lw=2, label='Star')
     if lines:
         lines = lines
-        y0, y1 = ax.get_ylim()
-        ax.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
-    ax.set_xlabel('Wavelength')
-    ax.set_ylabel('"Normalized" intensity')
+        y0, y1 = ax1.get_ylim()
+        ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
+    ax1.set_xlabel('Wavelength')
+    ax1.set_ylabel('"Normalized" intensity')
+
+    if len(rvs) == 1:
+        if 'sun' in rvs.keys():
+            ax2.plot(r_sun, c_sun, '-k', label='CCF(sun)', lw=2)
+            ax2.plot(x_sun, y_sun, '--r', lw=2)
+        if 'model' in rvs.keys():
+            ax2.plot(r_mod, c_mod, '-k', label='CCF(mod)', lw=2)
+            ax2.plot(x_mod, y_mod, '--r', lw=2)
+        if 'telluric' in rvs.keys():
+            ax2.plot(r_tel, c_tel, '-k', label='CCF(tel)', lw=2)
+            ax2.plot(x_tel, y_tel, '--r', lw=2)
+
+        ax2.legend(frameon=False)
+        ax2.set_xlabel('RV [km/s]')
+
+    elif len(rvs) == 2:
+        if 'sun' in rvs.keys():
+            ax2.plot(r_sun, c_sun,  '-k', label='CCF(sun)', lw=2)
+            ax2.plot(x_sun, y_sun, '--r', lw=2)
+        if 'model' in rvs.keys():
+            ax2.plot(r_mod, c_mod,  '-k', label='CCF(mod)', lw=2)
+            ax2.plot(x_mod, y_mod, '--r', lw=2)
+        ax3.plot(r_tel, c_tel, '-k', label='CCF(tel)', lw=2)
+        ax3.plot(x_tel, y_tel, '--r', lw=2)
+
+        ax2.legend(frameon=False)
+        ax3.legend(frameon=False)
+        ax2.set_xlabel('RV [km/s]')
+        ax3.set_xlabel('RV [km/s]')
 
     if rv:
-        ax.set_title('%s\nRV correction: %s km/s' % (fname, rv))
+        ax1.set_title('%s\nRV correction: %s km/s' % (input, rv))
     elif rv1 and rv2:
-        ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
-                     rv1, rv2))
+        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (input,
+                      rv1, rv2))
     elif rv1 and not rv2:
-        ax.set_title('%s\nSun/model: %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nSun/model: %s km/s' % (input, rv1))
     elif not rv1 and rv2:
-        ax.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
+        ax1.set_title('%s\nTelluric: %s km/s' % (input, rv2))
     elif ccf == 'm':
-        ax.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nModel(CCF): %s km/s' % (input, rv1))
     elif ccf == 's':
-        ax.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nSun(CCF): %s km/s' % (input, rv1))
     elif ccf == 't':
-        ax.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
+        ax1.set_title('%s\nTelluric(CCF): %s km/s' % (input, rv2))
     elif ccf == '2':
-        ax.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' %
-                     (fname, rv1, rv2))
+        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' %
+                      (input, rv1, rv2))
     else:
-        ax.set_title(fname)
+        ax1.set_title(input)
     if sun or telluric or model:
-        ax.legend(loc=3, frameon=False)
+        ax1.legend(loc=3, frameon=False)
     plt.show()
 
     return rvs

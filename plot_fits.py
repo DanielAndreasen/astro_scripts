@@ -8,6 +8,7 @@ import scipy.interpolate as sci
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
+from astropy.modeling import models, fitting
 import argparse
 
 path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
@@ -15,7 +16,7 @@ pathsun = path + 'solarspectrum_01.fits'
 pathtel = path + 'telluric_NIR.fits'
 
 
-def ccf(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
+def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     """Make a CCF between 2 spectra and find the RV
 
     :spectrum1: The stellar spectrum
@@ -131,7 +132,8 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
         The shifted flux array at the *old* input locations.
     wlprime : array
         The shifted wavelength axis.
-  """
+    """
+
     # Shifted wavelength axis
     wlprime = wvl * (1.0 + v/299792.458)
     i = np.argmin(abs(wvl - 12780.6))
@@ -220,11 +222,23 @@ def _parser():
     return args
 
 
-if __name__ == '__main__':
-    args = _parser()
-    # print(args)
+def main(input, lines=False, model=False, telluric=False, sun=False,
+         rv=False, rv1=False, rv2=False, ccf='0'):
+    """Plot a fits file with extensive options
 
-    fname = args.input
+    :input: Input spectra
+    :lines: Absorption lines
+    :model: Model spectrum
+    :telluric: Telluric spectrum
+    :sun: Solar spectrum
+    :rv: RV of input spectrum
+    :rv1: RV of Solar/model spectrum
+    :rv2: RV of telluric spectrum
+    :ccf: Calculate CCF (s, m, t, 2)
+    :returns: RV if CCF have been calculated
+    """
+
+    fname = input
     I = fits.getdata(fname)
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as continuum)
@@ -233,15 +247,15 @@ if __name__ == '__main__':
     hdr = fits.getheader(fname)
     dw = 10  # Some extra coverage for RV shifts
 
-    if args.rv:
-        rv = args.rv
+    if rv:
+        rv = rv
         w = get_wavelength(hdr)
         I, w = dopplerShift(wvl=w, flux=I, v=rv, fill_value=0.95)
     else:
         w = get_wavelength(hdr)
     w0, w1 = w[0] - dw, w[-1] + dw
 
-    if args.sun and not args.model:
+    if sun and not model:
         I_sun = fits.getdata(pathsun)
         hdr = fits.getheader(pathsun)
         w_sun = get_wavelength(hdr)
@@ -249,33 +263,34 @@ if __name__ == '__main__':
         w_sun = w_sun[i]
         I_sun = I_sun[i]
         I_sun /= np.median(I_sun)
-        if args.ccf in 's2' and args.rv1:
+        if ccf in 's2' and rv1:
             print('Warning: RV set for Sun. Calculate RV with CCF')
-        if args.rv1 and args.ccf not in 's2':
-            I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=args.rv1,
+        if rv1 and ccf not in 's2':
+            I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
                                         fill_value=0.95)
 
-    if args.model:
-        I_mod = fits.getdata(args.model)
-        hdr = fits.getheader(args.model)
+    if model:
+        I_mod = fits.getdata(model)
+        hdr = fits.getheader(model)
         w_mod = get_wavelength(hdr)
+        print(w_mod)
         nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
         w_mod = w_mod / (1 + 1e-6 * nre)
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]
-        I_mod = 10 ** (I_mod - 8.0)  # https://phoenix.ens-lyon.fr/Grids/FORMAT
+        # I_mod = 10 ** (I_mod-8.0)  # https://phoenix.ens-lyon.fr/Grids/FORMAT
         I_mod /= np.median(I_mod)
         # Normalization (use first 50 points below 1.2 as continuum)
         maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
         I_mod /= np.median(I_mod[maxes])
-        if args.ccf in 'm2' and args.rv1:
+        if ccf in 'm2' and rv1:
             print('Warning: RV set for model. Calculate RV with CCF')
-        if args.rv1 and args.ccf not in 'm2':
-            I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=args.rv1,
+        if rv1 and ccf not in 'm2':
+            I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
                                         fill_value=0.95)
 
-    if args.telluric:
+    if telluric:
         I_tel = fits.getdata(pathtel)
         hdr = fits.getheader(pathtel)
         w_tel = get_wavelength(hdr)
@@ -283,29 +298,31 @@ if __name__ == '__main__':
         w_tel = w_tel[i]
         I_tel = I_tel[i]
         I_tel /= np.median(I_tel)
-        if args.ccf in 't2' and args.rv2:
+        if ccf in 't2' and rv2:
             print('Warning: RV set for telluric, Calculate RV with CCF')
-        if args.rv2 and args.ccf not in 't2':
-            I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=args.rv2,
+        if rv2 and ccf not in 't2':
+            I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
                                         fill_value=0.95)
 
-    if args.ccf != '0':
-        from astropy.modeling import models, fitting
-
-        if args.telluric and args.sun:
-            I_sun = I_sun / I_tel  # remove tellurics from the Solar spectrum
-
-        if args.ccf in 's2' and args.sun:
-            rv1, r_sun, c_sun = ccf((w, -I+1), (w_sun, -I_sun+1))
+    rvs = {}
+    if ccf != '0':
+        if ccf in 's2' and sun:
+            # remove tellurics from the Solar spectrum
+            if telluric and sun:
+                I_sun = I_sun / I_tel
+            rv1, r_sun, c_sun = ccf_astro((w, -I+1), (w_sun, -I_sun+1))
             I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
+            rvs['sun'] = rv1
 
-        if args.ccf in 'm2' and args.model:
-            rv1, r_mod, c_mod = ccf((w, -I+1), (w_mod, -I_mod+1))
+        if ccf in 'm2' and model:
+            rv1, r_mod, c_mod = ccf_astro((w, -I+1), (w_mod, -I_mod+1))
             I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
+            rvs['model'] = rv1
 
-        if args.ccf in 't2' and args.telluric:
-            rv2, r_tel, c_mod = ccf((w, -I+1), (w_tel, -I_tel+1))
+        if ccf in 't2' and telluric:
+            rv2, r_tel, c_mod = ccf_astro((w, -I+1), (w_tel, -I_tel+1))
             I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
+            rvs['telluric'] = rv2
 
     fig = plt.figure(figsize=(16, 5))
     # Start in pan mode with these two lines
@@ -317,40 +334,50 @@ if __name__ == '__main__':
     x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)
     ax.xaxis.set_major_formatter(x_formatter)
 
-    if args.sun and not args.model:
+    if sun and not model:
         ax.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
-    if args.telluric:
+    if telluric:
         ax.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
-    if args.model:
+    if model:
         ax.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax.plot(w, I, '-k', lw=2, label='Star')
-    if args.lines:
-        lines = args.lines
+    if lines:
+        lines = lines
         y0, y1 = ax.get_ylim()
         ax.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax.set_xlabel('Wavelength')
     ax.set_ylabel('"Normalized" intensity')
 
-    if args.rv:
-        ax.set_title('%s\nRV correction: %s km/s' % (fname, args.rv))
-    elif args.rv1 and args.rv2:
+    if rv:
+        ax.set_title('%s\nRV correction: %s km/s' % (fname, rv))
+    elif rv1 and rv2:
         ax.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname,
-                     args.rv1, args.rv2))
-    elif args.rv1 and not args.rv2:
-        ax.set_title('%s\nSun/model: %s km/s' % (fname, args.rv1))
-    elif not args.rv1 and args.rv2:
-        ax.set_title('%s\nTelluric: %s km/s' % (fname, args.rv2))
-    elif args.ccf == 'm':
+                     rv1, rv2))
+    elif rv1 and not rv2:
+        ax.set_title('%s\nSun/model: %s km/s' % (fname, rv1))
+    elif not rv1 and rv2:
+        ax.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
+    elif ccf == 'm':
         ax.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
-    elif args.ccf == 's':
+    elif ccf == 's':
         ax.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
-    elif args.ccf == 't':
+    elif ccf == 't':
         ax.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
-    elif args.ccf == '2':
+    elif ccf == '2':
         ax.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' %
                      (fname, rv1, rv2))
     else:
         ax.set_title(fname)
-    if args.sun or args.telluric or args.model:
+    if sun or telluric or model:
         ax.legend(loc=3, frameon=False)
     plt.show()
+
+    return rvs
+
+
+if __name__ == '__main__':
+    args = vars(_parser())
+    input = args.pop('input')
+    opts = {k: args[k] for k in args}
+
+    main(input, **opts)

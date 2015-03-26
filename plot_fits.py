@@ -53,6 +53,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     # Fit the CCF with a gaussian
     cc -= np.mean(cc)
     RV, g = _fit_ccf(drvs, cc)
+    # RV, g = _fit_ccf(drvs[15:-15], cc[15:-15])
     return RV, drvs, cc, drvs, g(drvs)
 
 
@@ -68,8 +69,11 @@ def _fit_ccf(rv, ccf):
     mean = rv[ccf == ampl]
     I = np.where(ccf == ampl)[0]
 
-    g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=1)
+    g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=4)
     fit_g = fitting.LevMarLSQFitter()
+
+    # plt.plot(rv, ccf, '-k', rv, g_init(rv), '-r')
+    # plt.show()
     g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
 
     RV = rv[g(ccf) == max(g(ccf))][0]
@@ -281,12 +285,17 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         i = (w_sun > w0) & (w_sun < w1)
         w_sun = w_sun[i]
         I_sun = I_sun[i]
-        I_sun /= np.median(I_sun)
-        if ccf in 's2' and rv1:
-            print('Warning: RV set for Sun. Calculate RV with CCF')
-        if rv1 and ccf not in 's2':
-            I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
-                                        fill_value=0.95)
+        if len(w_sun) > 0:
+            I_sun /= np.median(I_sun)
+            if ccf in 's2' and rv1:
+                print('Warning: RV set for Sun. Calculate RV with CCF')
+            if rv1 and ccf not in 's2':
+                I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
+                                            fill_value=0.95)
+        else:
+            sun = False
+    elif sun and model:
+        sun = False
 
     if model:
         I_mod = fits.getdata(model)
@@ -297,16 +306,20 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]
-        # I_mod = 10 ** (I_mod-8.0)  # https://phoenix.ens-lyon.fr/Grids/FORMAT
-        I_mod /= np.median(I_mod)
-        # Normalization (use first 50 points below 1.2 as continuum)
-        maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
-        I_mod /= np.median(I_mod[maxes])
-        if ccf in 'm2' and rv1:
-            print('Warning: RV set for model. Calculate RV with CCF')
-        if rv1 and ccf not in 'm2':
-            I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
-                                        fill_value=0.95)
+        if len(w_mod) > 0:
+            # https://phoenix.ens-lyon.fr/Grids/FORMAT
+            # I_mod = 10 ** (I_mod-8.0)
+            I_mod /= np.median(I_mod)
+            # Normalization (use first 50 points below 1.2 as continuum)
+            maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
+            I_mod /= np.median(I_mod[maxes])
+            if ccf in 'm2' and rv1:
+                print('Warning: RV set for model. Calculate RV with CCF')
+            if rv1 and ccf not in 'm2':
+                I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
+                                            fill_value=0.95)
+        else:
+            model = False
 
     if telluric:
         I_tel = fits.getdata(pathtel)
@@ -315,12 +328,15 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         i = (w_tel > w0) & (w_tel < w1)
         w_tel = w_tel[i]
         I_tel = I_tel[i]
-        I_tel /= np.median(I_tel)
-        if ccf in 't2' and rv2:
-            print('Warning: RV set for telluric, Calculate RV with CCF')
-        if rv2 and ccf not in 't2':
-            I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
-                                        fill_value=0.95)
+        if len(w_tel) > 0:
+            I_tel /= np.median(I_tel)
+            if ccf in 't2' and rv2:
+                print('Warning: RV set for telluric, Calculate RV with CCF')
+            if rv2 and ccf not in 't2':
+                I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
+                                            fill_value=0.95)
+        else:
+            telluric = False
 
     rvs = {}
     if ccf != '0':

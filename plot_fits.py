@@ -74,9 +74,12 @@ def _fit_ccf(rv, ccf):
 
     # plt.plot(rv, ccf, '-k', rv, g_init(rv), '-r')
     # plt.show()
-    g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
-
-    RV = rv[g(ccf) == max(g(ccf))][0]
+    try:
+        g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
+    except TypeError:
+        print('Warning: Not able to fit a gaussian to the CCF')
+        return 0, g_init
+    RV = g.mean.value
     return RV, g
 
 
@@ -367,6 +370,9 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
                                             fill_value=0.95)
                 rvs['telluric'] = rv2
 
+    if len(rvs) == 0:
+        ccf = '0'
+
     if ccf != '0':
         from matplotlib.gridspec import GridSpec
         fig = plt.figure(figsize=(16, 8))
@@ -381,8 +387,6 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             ax3 = plt.subplot(gs[-1, -1])
             ax2.set_yticklabels([])
             ax3.set_yticklabels([])
-        else:
-            print('No RV calculated')
     else:
         fig = plt.figure(figsize=(16, 5))
         ax1 = fig.add_subplot(111)
@@ -403,7 +407,13 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
     if lines:
-        lines = lines
+        lines = np.array(lines)
+        if rv1:
+            lines *= (1.0 + rv1/299792.458)
+        elif 'model' in rvs.keys():
+            lines *= (1.0 + rvs['model']/299792.458)
+        elif 'sun' in rvs.keys():
+            lines *= (1.0 + rvs['sun']/299792.458)
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')

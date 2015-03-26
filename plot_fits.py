@@ -74,8 +74,11 @@ def _fit_ccf(rv, ccf):
 
     # plt.plot(rv, ccf, '-k', rv, g_init(rv), '-r')
     # plt.show()
-    g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
-
+    try:
+        g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
+    except TypeError:
+        print('Warning: Not able to fit a gaussian to the CCF')
+        return 0, g_init
     RV = g.mean.value
     return RV, g
 

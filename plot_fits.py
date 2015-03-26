@@ -375,16 +375,18 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
     if ccf != '0':
         from matplotlib.gridspec import GridSpec
-        fig = plt.figure(figsize=(16, 8))
-        gs = GridSpec(3, 2)
-        gs.update(wspace=0.05, hspace=0.35)
-        ax1 = plt.subplot(gs[:-1, :])
+        fig = plt.figure(figsize=(16, 5))
+        gs = GridSpec(1, 5)
         if len(rvs) == 1:
-            ax2 = plt.subplot(gs[-1, :])
+            gs.update(wspace=0.25, hspace=0.35, left=0.05, right=0.99)
+            ax1 = plt.subplot(gs[:, 0:-1])
+            ax2 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
         elif len(rvs) == 2:
-            ax2 = plt.subplot(gs[-1, :-1])
-            ax3 = plt.subplot(gs[-1, -1])
+            gs.update(wspace=0.25, hspace=0.35, left=0.01, right=0.99)
+            ax1 = plt.subplot(gs[:, 1:4])
+            ax2 = plt.subplot(gs[:, 0])
+            ax3 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
             ax3.set_yticklabels([])
     else:
@@ -407,7 +409,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
 
-    if len(lines):
+    if lines:
         lines = np.array(lines)
         if rv1:
             lines *= (1.0 + rv1/299792.458)
@@ -422,30 +424,34 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-k', label='CCF(sun)', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
+            ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-k', label='CCF(mod)', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
+            ax2.set_title('CCF (mod)')
         if 'telluric' in rvs.keys():
-            ax2.plot(r_tel, c_tel, '-k', label='CCF(tel)', lw=2)
+            ax2.plot(r_tel, c_tel, '-k', lw=2)
             ax2.plot(x_tel, y_tel, '--r', lw=2)
-
-        ax2.legend(frameon=False)
+            ax2.set_title('CCF (tel)')
         ax2.set_xlabel('RV [km/s]')
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun,  '-k', label='CCF(sun)', lw=2)
+            print('sun')
+            ax2.plot(r_sun, c_sun,  '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
+            ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod,  '-k', label='CCF(mod)', lw=2)
+            print('model')
+            ax2.plot(r_mod, c_mod,  '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
-        ax3.plot(r_tel, c_tel, '-k', label='CCF(tel)', lw=2)
+            ax2.set_title('CCF (mod)')
+        ax3.plot(r_tel, c_tel, '-k', lw=2)
         ax3.plot(x_tel, y_tel, '--r', lw=2)
+        ax3.set_title('CCF (tel)')
 
-        ax2.legend(frameon=False)
-        ax3.legend(frameon=False)
         ax2.set_xlabel('RV [km/s]')
         ax3.set_xlabel('RV [km/s]')
 

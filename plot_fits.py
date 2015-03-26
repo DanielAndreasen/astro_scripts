@@ -54,7 +54,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     cc -= np.mean(cc)
     RV, g = _fit_ccf(drvs, cc)
     # RV, g = _fit_ccf(drvs[15:-15], cc[15:-15])
-    return RV, drvs, cc, drvs, g(drvs)
+    return int(RV), drvs, cc, drvs, g(drvs)
 
 
 def _fit_ccf(rv, ccf):
@@ -406,7 +406,8 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     if model:
         ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
-    if lines:
+
+    if len(lines):
         lines = np.array(lines)
         if rv1:
             lines *= (1.0 + rv1/299792.458)

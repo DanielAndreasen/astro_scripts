@@ -439,12 +439,10 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            print('sun')
             ax2.plot(r_sun, c_sun,  '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            print('model')
             ax2.plot(r_mod, c_mod,  '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')

@@ -16,6 +16,27 @@ pathsun = path + 'solarspectrum_01.fits'
 pathtel = path + 'telluric_NIR.fits'
 
 
+class Cursor:
+    """Get a crosshair at the cursor's position
+
+    The code is from here:
+    http://matplotlib.org/examples/pylab_examples/cursor_demo.html
+    """
+
+    def __init__(self, ax):
+        self._ax = ax
+        self.lx = ax.axhline(color='b', lw=2, alpha=0.7)
+        self.ly = ax.axvline(color='b', lw=2, alpha=0.7)
+
+    def mouse_move(self, event):
+        if not event.inaxes:
+            return
+        x, y = event.xdata, event.ydata
+        self.lx.set_ydata(y)
+        self.ly.set_xdata(x)
+        plt.draw()
+
+
 def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     """Make a CCF between 2 spectra and find the RV
 
@@ -408,6 +429,11 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     if model:
         ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
+
+    xlim = ax1.get_xlim()
+    cursor = Cursor(ax1)
+    plt.connect('motion_notify_event', cursor.mouse_move)
+    ax1.set_xlim(xlim)
 
     if lines:
         lines = np.array(lines)

@@ -56,7 +56,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     drvs = np.arange(rvmin, rvmax, drv)
     cc = np.zeros(len(drvs))
     for i, rv in enumerate(drvs):
-        fi = sci.interp1d(tw * (1.0 + rv/c), tf)
+        fi = sci.interp1d(tw * (1.0 + rv / c), tf)
         # Shifted template evaluated at location of spectrum
         try:
             fiw = fi(w)
@@ -96,7 +96,7 @@ def _fit_ccf(rv, ccf):
     # plt.plot(rv, ccf, '-k', rv, g_init(rv), '-r')
     # plt.show()
     try:
-        g = fit_g(g_init, rv[I-10:I+10], ccf[I-10:I+10])
+        g = fit_g(g_init, rv[I - 10:I + 10], ccf[I - 10:I + 10])
     except TypeError:
         print('Warning: Not able to fit a gaussian to the CCF')
         return 0, g_init
@@ -118,8 +118,8 @@ def nrefrac(wavelength, density=1.0):
     """
     wl = np.array(wavelength)
 
-    wl2inv = (1.e4/wl)**2
-    refracstp = 272.643 + 1.2288 * wl2inv + 3.555e-2 * wl2inv**2
+    wl2inv = (1.e4 / wl) ** 2
+    refracstp = 272.643 + 1.2288 * wl2inv + 3.555e-2 * wl2inv ** 2
     return density * refracstp
 
 
@@ -183,7 +183,7 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
     """
 
     # Shifted wavelength axis
-    wlprime = wvl * (1.0 + v/299792.458)
+    wlprime = wvl * (1.0 + v / 299792.458)
     i = np.argmin(abs(wvl - 12780.6))
 
     f = sci.interp1d(wlprime, flux, bounds_error=False, fill_value=np.nan)
@@ -242,30 +242,41 @@ def _parser():
     parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be'
                                      ' careful with large files')
     parser.add_argument('input', help='Input fits file')
-    parser.add_argument('-s', '--sun', help='Plot with spectra of the Sun ',
+    parser.add_argument('-s', '--sun',
+                        help='Plot with spectra of the Sun ',
                         action='store_true')
-    parser.add_argument('-t', '--telluric', help='Plot telluric with spectrum',
+    parser.add_argument('-t', '--telluric',
+                        help='Plot telluric with spectrum',
                         action='store_true')
-    parser.add_argument('-r', '--rv', help='RV correction to the spectra in'
-                        ' km/s', default=False, type=float)
-    parser.add_argument('-r1', '--rv1', help='RV correction to the spectra in'
-                        ' km/s (model/Sun)', default=False, type=float)
-    parser.add_argument('-r2', '--rv2', help='RV correction to the spectra in'
-                        ' km/s (telluric)', default=False, type=float)
+    parser.add_argument('-r', '--rv',
+                        help='RV correction to the spectra in km/s',
+                        default=False,
+                        type=float)
+    parser.add_argument('-r1', '--rv1',
+                        help='RV correction to the spectra in km/s (model/Sun)',
+                        default=False,
+                        type=float)
+    parser.add_argument('-r2', '--rv2',
+                        help='RV correction to the spectra in km/s (telluric)',
+                        default=False,
+                        type=float)
     parser.add_argument('-l', '--lines',
                         help='Lines to plot on top (multiple lines is an'
                         ' option). If multiple lines needs to be plotted, then'
                         ' separate with a space',
-                        default=False, nargs='+', type=float)
+                        default=False,
+                        nargs='+',
+                        type=float)
     parser.add_argument('-m', '--model',
                         help='If not the Sun shoul be used as a model, put'
                         ' the model here (only support BT-Settl for the'
                         ' moment)',
                         default=False)
-    parser.add_argument('-c', '--ccf', default='0',
+    parser.add_argument('-c', '--ccf',
+                        default='0',
                         choices=['0', 's', 'm', 't', '2'],
                         help='Calculate the CCF for Sun/model or tellurics '
-                             'or both.')
+                        'or both.')
     args = parser.parse_args()
     return args
 
@@ -314,7 +325,9 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 's2' and rv1:
                 print('Warning: RV set for Sun. Calculate RV with CCF')
             if rv1 and ccf not in 's2':
-                I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1,
+                I_sun, w_sun = dopplerShift(wvl=w_sun,
+                                            flux=I_sun,
+                                            v=rv1,
                                             fill_value=0.95)
         else:
             sun = False
@@ -340,7 +353,9 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 'm2' and rv1:
                 print('Warning: RV set for model. Calculate RV with CCF')
             if rv1 and ccf not in 'm2':
-                I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1,
+                I_mod, w_mod = dopplerShift(wvl=w_mod,
+                                            flux=I_mod,
+                                            v=rv1,
                                             fill_value=0.95)
         else:
             model = False
@@ -357,7 +372,9 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 't2' and rv2:
                 print('Warning: RV set for telluric, Calculate RV with CCF')
             if rv2 and ccf not in 't2':
-                I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2,
+                I_tel, w_tel = dopplerShift(wvl=w_tel,
+                                            flux=I_tel,
+                                            v=rv2,
                                             fill_value=0.95)
         else:
             telluric = False
@@ -368,26 +385,29 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             # remove tellurics from the Solar spectrum
             if telluric and sun:
                 I_sun = I_sun / I_tel
-            rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I+1),
-                                                        (w_sun, -I_sun+1))
+            rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1),
+                                                        (w_sun, -I_sun + 1))
             if rv1 != 0:
-                I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1,
+                I_sun, w_sun = dopplerShift(w_sun, I_sun,
+                                            v=rv1,
                                             fill_value=0.95)
                 rvs['sun'] = rv1
 
         if ccf in 'm2' and model:
-            rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I+1),
-                                                        (w_mod, -I_mod+1))
+            rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I + 1),
+                                                        (w_mod, -I_mod + 1))
             if rv1 != 0:
-                I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1,
+                I_mod, w_mod = dopplerShift(w_mod, I_mod,
+                                            v=rv1,
                                             fill_value=0.95)
                 rvs['model'] = rv1
 
         if ccf in 't2' and telluric:
-            rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I+1),
-                                                        (w_tel, -I_tel+1))
+            rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I + 1),
+                                                        (w_tel, -I_tel + 1))
             if rv2 != 0:
-                I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2,
+                I_tel, w_tel = dopplerShift(w_tel, I_tel,
+                                            v=rv2,
                                             fill_value=0.95)
                 rvs['telluric'] = rv2
 
@@ -438,11 +458,11 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     if lines:
         lines = np.array(lines)
         if rv1:
-            lines *= (1.0 + rv1/299792.458)
+            lines *= (1.0 + rv1 / 299792.458)
         elif 'model' in rvs.keys():
-            lines *= (1.0 + rvs['model']/299792.458)
+            lines *= (1.0 + rvs['model'] / 299792.458)
         elif 'sun' in rvs.keys():
-            lines *= (1.0 + rvs['sun']/299792.458)
+            lines *= (1.0 + rvs['sun'] / 299792.458)
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')
@@ -465,11 +485,11 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun,  '-k', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod,  '-k', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')
         ax3.plot(r_tel, c_tel, '-k', lw=2)
@@ -482,8 +502,8 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     if rv:
         ax1.set_title('%s\nRV correction: %s km/s' % (input, rv))
     elif rv1 and rv2:
-        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (input,
-                      rv1, rv2))
+        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' %
+                      (input, rv1, rv2))
     elif rv1 and not rv2:
         ax1.set_title('%s\nSun/model: %s km/s' % (input, rv1))
     elif not rv1 and rv2:

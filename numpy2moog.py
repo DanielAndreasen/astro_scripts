@@ -103,8 +103,10 @@ def vald2numpy(input, output=None):
         f.write(newFile)
 
     f = np.loadtxt(input,
-                   dtype={'names': ('elements', 'w', 'excit', 'loggf'),
-                          'formats': ('S4', 'f4', 'f4', 'f4')},
+                   dtype={
+                       'names': ('elements', 'w', 'excit', 'loggf'),
+                       'formats': ('S4', 'f4', 'f4', 'f4')
+                   },
                    comments='#',
                    delimiter=',',
                    usecols=(0, 1, 2, 3))
@@ -120,13 +122,13 @@ def vald2numpy(input, output=None):
         iso = e[-1]
         e = e[:-1].strip(' ')
         if e in mol.keys():
-            ele_moog = '%s.%s' % (mol[e][0], str(int(iso)-1))
+            ele_moog = '%s.%s' % (mol[e][0], str(int(iso) - 1))
             l = str(l).ljust(6, '0')
             z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
         else:
             try:
                 t = element(e)
-                ele_moog = str(t.atomic) + '.' + str(int(iso)-1)
+                ele_moog = str(t.atomic) + '.' + str(int(iso) - 1)
                 l = str(l).ljust(6, '0')
                 z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
             except AttributeError:
@@ -152,20 +154,20 @@ def _parser():
     parser.add_argument('-m', '--mode',
                         default='ew',
                         help='Which function to evoke [ew|synth|asc].'
-                              'ew: converts an ASCII array to a MOOG EW array.'
-                              'synth: converts an ASCII array to a MOOG'
-                              'synthesis array.'
-                              'asc: converts a VALD array to a ASCII array.')
+                        'ew: converts an ASCII array to a MOOG EW array.\n'
+                        'synth: converts an ASCII array to a MOOG\n'
+                        'synthesis array.\n'
+                        'asc: converts a VALD array to a ASCII array.')
 
     parser.add_argument('-o', '--output',
                         default=None,
                         help='Output file, if not an extension is specified'
-                              'will be .moog or .vald depending on the mode.')
+                        ' will be .moog or .vald depending on the mode.')
 
     parser.add_argument('-H', '--header',
                         default=None,
                         help='The header for the file. If not given, a'
-                             'standard header will be provided')
+                        ' standard header will be provided')
     args = parser.parse_args()
     return args
 

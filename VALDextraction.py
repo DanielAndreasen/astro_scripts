@@ -26,10 +26,11 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
 
     dw = step
     if wavelengths:
-        assert hasattr(wavelengths, '__iter__'), '%s is not iterable' % wavelengths
+        assert hasattr(wavelengths,
+                       '__iter__'), '%s is not iterable' % wavelengths
 
         for wavelength in wavelengths:
-            line_interval = str(wavelength-step)+', '+str(wavelength+step)+'\n'
+            line_interval = '%s, %s\n' % (wavelength - step, wavelength + step)
             request = request_header
             request += line_interval
             request += request_bottom
@@ -47,7 +48,7 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
             raw_input('\nPress RETURN to continue: ')
             os.system('rm -f tmp.mail')
     else:
-        line_interval = str(wavelength-step)+', '+str(wavelength+step)+'\n'
+        line_interval = '%s, %s\n' % (wavelength - step, wavelength + step)
         request = request_header
         request += line_interval
         request += request_bottom
@@ -68,11 +69,17 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
 def _parser():
     parser = argparse.ArgumentParser(description='Prepare emails with'
                                      'Thunderbird for VALD.')
-    parser.add_argument('-w', '--wavelength', help='The central wavelength',
+    parser.add_argument('-w', '--wavelength',
+                        help='The central wavelength',
                         type=float)
-    parser.add_argument('-l', '--list', required=False, nargs='+', type=float,
+    parser.add_argument('-l', '--list',
+                        required=False,
+                        nargs='+',
+                        type=float,
                         help='A list of wavelengths to be itereated over')
-    parser.add_argument('-s', '--step', default=1, type=float,
+    parser.add_argument('-s', '--step',
+                        default=1,
+                        type=float,
                         help='The wavelength window, twice the size of the\
                               step.')
     return parser.parse_args()

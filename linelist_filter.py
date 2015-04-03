@@ -23,21 +23,27 @@ def ll_filter(fname, col, limit, sign, element):
 
 def _parser():
     parser = argparse.ArgumentParser(description='Filter the linelist by a'
-                                                 'column and an upper limit')
+                                     ' column and an upper limit')
     parser.add_argument('input', help='Input linelist')
-    parser.add_argument('col', help='Column to be sorted (starting at 0)',
+    parser.add_argument('col',
+                        help='Column to be sorted (starting at 0)',
                         type=int)
-    parser.add_argument('limit', help='The upper limit on the column',
+    parser.add_argument('limit',
+                        help='The upper limit on the column',
                         type=float)
-    parser.add_argument('-o', '--output', help='The output linelist',
+    parser.add_argument('-o', '--output',
+                        help='The output linelist',
                         default=None)
-    parser.add_argument('-s', '--sign', help='Positive (default) for including\
-                                              values above, negative for\
-                                              including values below',
-                        default=1, type=int)
-    parser.add_argument('-e', '--element', help='If value is 26.1 then FeII\
-                                                 lines will not be removed.',
-                        default=None, type=float)
+    parser.add_argument('-s', '--sign',
+                        help='Positive (default) for including values above,'
+                        ' negative for including values below',
+                        default=1,
+                        type=int)
+    parser.add_argument('-e', '--element',
+                        help='If value is 26.1 then FeII lines will'
+                        ' not be removed.',
+                        default=None,
+                        type=float)
     args = parser.parse_args()
     return args
 
@@ -59,7 +65,7 @@ if __name__ == '__main__':
 
     data = ll_filter(fname, col, limit, sign, element)
     print('Result saved in %s' % output)
-    np.savetxt(output, data, fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f',
-                                  '%28.1f'),
+    np.savetxt(output, data,
+               fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
                header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',
                comments='')

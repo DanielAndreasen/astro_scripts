@@ -29,10 +29,10 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
         ll, flux = fname
     if unit == 'n':
         ll *= 10
-    N = int((ll[-1]-ll[0])/dA)
+    N = int((ll[-1] - ll[0]) / dA)
 
     flux_int_func = interp1d(ll, flux, kind='linear')
-    ll_int = np.arange(N)*dA+ll[0]
+    ll_int = np.arange(N) * dA + ll[0]
     flux_int = flux_int_func(ll_int)
     prihdr = fits.Header()
     prihdr["NAXIS1"] = N
@@ -47,18 +47,21 @@ def _parser():
                                      'with wavelength and intensity to a 1D'
                                      'spectra for splot@IRAF or ARES')
     parser.add_argument('input', help='File name of ASCII file')
-    parser.add_argument('-o', '--output', help='File name of output. Default'
-                                               'is the ASCII name with a .fits'
-                                               'extension',
+    parser.add_argument('-o', '--output',
+                        help='File name of output. Default'
+                        ' is the ASCII name with a .fits'
+                        ' extension',
                         default=None)
-    parser.add_argument('-d', '--delta', help='Wavelength step (default:'
-                                              ' 0.01A)',
-                        default=0.01, type=float)
-    parser.add_argument('-u', '--unit', help='Unit of wavelength vector '
-                                             '(default: AA)',
+    parser.add_argument('-d', '--delta',
+                        help='Wavelength step (default: 0.01A)',
+                        default=0.01,
+                        type=float)
+    parser.add_argument('-u', '--unit',
+                        help='Unit of wavelength vector (default: AA)',
                         default='a')
     args = parser.parse_args()
     return args
+
 
 if __name__ == '__main__':
     args = _parser()

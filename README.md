@@ -1,3 +1,12 @@
+# WARNING
+Look at the wiki instead: https://github.com/DanielAndreasen/astro_scripts/wiki
+It's not done, but I will gradually move documentation to the wiki.
+
+
+
+
+
+
 Small tools for an astronomer
 =============================
 

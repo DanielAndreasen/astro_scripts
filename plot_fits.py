@@ -72,9 +72,10 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
         return 0, 0, 0, 0, 0
 
     # Fit the CCF with a gaussian
-    cc -= np.mean(cc)
+    cc[cc == 0] = np.mean(cc)
+    cc -= min(cc)
+    cc /= max(cc)
     RV, g = _fit_ccf(drvs, cc)
-    # RV, g = _fit_ccf(drvs[15:-15], cc[15:-15])
     return int(RV), drvs, cc, drvs, g(drvs)
 
 
@@ -86,15 +87,13 @@ def _fit_ccf(rv, ccf):
     :returns: The RV, and best fit gaussian
 
     """
-    ampl = max(ccf)
+    ampl = 1
     mean = rv[ccf == ampl]
     I = np.where(ccf == ampl)[0]
 
-    g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=4)
+    g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=5)
     fit_g = fitting.LevMarLSQFitter()
 
-    # plt.plot(rv, ccf, '-k', rv, g_init(rv), '-r')
-    # plt.show()
     try:
         g = fit_g(g_init, rv[I - 10:I + 10], ccf[I - 10:I + 10])
     except TypeError:

@@ -13,6 +13,10 @@ import argparse
 
 def numpy2moog_ew(arr, output=None, header=None):
     """Script to convert a numpy array to the MOOG format for abfind.
+
+    :arr: Either the name of an inputfile or an numpy array
+    :output: output filename. Needs to be specified if arr is an array
+    :header: Header of the MOOG file (1 line only)
     """
     if not header:  # Default header
         header = 'Wavelength\tEle\t  excit\t  log gf\t\t\t EW'

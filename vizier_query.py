@@ -10,6 +10,7 @@ except ImportError:
     url = 'https://astroquery.readthedocs.org/'
     raise ImportError('astroquery is needed (pip). More info here: %s' % url)
 import argparse
+import warnings
 
 
 def _q2a(lst):
@@ -57,8 +58,12 @@ def vizier_query(object, params=None, method='both'):
     if method not in methods:
         raise ValueError('method must be one of:', methods)
 
-    print('Receiving catalogues from VizieR: %s' % object)
-    cat = Vizier.query_object(object)
+    print('-' * 34)
+    print(' Receiving catalogues from VizieR\n Object: %s' % object)
+    print('-' * 34)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        cat = Vizier.query_object(object)
     parameters = {'Teff': [], 'logg': [], '__Fe_H_': []}
     if params:
         for param in params:
@@ -78,10 +83,13 @@ def vizier_query(object, params=None, method='both'):
         median = np.nanmedian(parameters[key])
         if key.startswith('__'):
             key = '[Fe/H]'
-        if method in ('mean', 'both'):
-            print('%s:\tMean value: %.2f' % (key, mean))
-        elif method in ('median', 'both'):
-            print('\tMedian value: %.2f\n' % median)
+        if method == 'mean':
+            print('\n%s:\tMean value: %.2f' % (key, mean))
+        elif method == 'median':
+            print('\n%s\tMedian value: %.2f' % (key, median))
+        else:
+            print('\n%s:\tMean value: %.2f' % (key, mean))
+            print('%s:\tMedian value: %.2f' % (key, median))
 
     return parameters
 

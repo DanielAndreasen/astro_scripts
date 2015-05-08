@@ -7,7 +7,6 @@ element, log gf, and EW to a MOOG file for abfind.
 
 # My imports
 from __future__ import division, print_function
-import os
 import numpy as np
 import argparse
 

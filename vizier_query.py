@@ -79,19 +79,24 @@ def vizier_query(object, params=None, method='both'):
     for key in parameters.keys():
         pi = parameters[key]
         parameters[key] = _q2a(pi)
-        mean = np.nanmean(parameters[key])
-        median = np.nanmedian(parameters[key])
+        if len(parameters[key]):
+            mean = round(np.nanmean(parameters[key]), 2)
+            median = round(np.nanmedian(parameters[key]), 2)
+        else:
+            mean = 'Not available'
+            median = 'Not available'
+
         if key.startswith('__'):
             key = '[Fe/H]'
         if method == 'mean':
-            print('\n%s:\tMean value: %.2f' % (key, mean))
+            print('\n%s:\tMean value: %s' % (key, mean))
         elif method == 'median':
-            print('\n%s\tMedian value: %.2f' % (key, median))
+            print('\n%s\tMedian value: %s' % (key, median))
         else:
-            print('\n%s:\tMean value: %.2f' % (key, mean))
-            print('%s:\tMedian value: %.2f' % (key, median))
+            print('\n%s:\tMean value: %s' % (key, mean))
+            print('%s:\tMedian value: %s' % (key, median))
 
-    return parameters
+    return parameters, cat
 
 
 if __name__ == '__main__':

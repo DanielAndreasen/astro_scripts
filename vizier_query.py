@@ -73,7 +73,7 @@ def vizier_query(object, params=None, method='both'):
         for column in parameters.keys():
             try:
                 parameters[column].append(ci[column].quantity)
-            except KeyError:
+            except (TypeError, KeyError):
                 pass
 
     for key in parameters.keys():

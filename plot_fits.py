@@ -3,6 +3,7 @@
 
 # My imports
 from __future__ import division, print_function
+import os
 import numpy as np
 import scipy.interpolate as sci
 import matplotlib.pyplot as plt
@@ -11,9 +12,17 @@ from astropy.io import fits
 from astropy.modeling import models, fitting
 import argparse
 
-path = '/home/daniel/Documents/Uni/phdproject/programs/astro_scripts/'
-pathsun = path + 'solarspectrum_01.fits'
-pathtel = path + 'telluric_NIR.fits'
+
+def _download_spec(fout):
+    """
+    Download a spectrum from my personal web page
+    """
+    import requests
+    spec = fout.rpartition('/')[-1]
+    url = 'http://www.astro.up.pt/~dandreasen/%s' % spec
+    spectrum = requests.get(url)
+    with open(fout, 'w') as file:
+        file.write(spectrum.content)
 
 
 class Cursor:
@@ -295,6 +304,24 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     :ccf: Calculate CCF (s, m, t, 2)
     :returns: RV if CCF have been calculated
     """
+
+    path = os.path.expanduser('~/.plotfits/')
+    pathsun = os.path.join(path, 'solarspectrum_01.fits')
+    pathtel = os.path.join(path, 'telluric_NIR.fits')
+    if os.path.isdir(path):
+        if not os.path.isfile(pathsun):
+            print('Downloading solar spectrum...')
+            _download_spec(pathsun)
+        if not os.path.isfile(pathtel):
+            print('Downloading telluric spectrum...')
+            _download_spec(pathtel)
+    else:
+        os.mkdir(path)
+        print('%s Created' % path)
+        print('Downloading solar spectrum...')
+        _download_spec(pathsun)
+        print('Downloading telluric spectrum...')
+        _download_spec(pathtel)
 
     I = fits.getdata(input)
     I /= np.median(I)

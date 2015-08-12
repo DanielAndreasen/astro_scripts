@@ -492,7 +492,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')
-    ax1.set_ylabel('"Normalized" intensity')
+    ax1.set_ylabel('"Normalized" flux')
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():

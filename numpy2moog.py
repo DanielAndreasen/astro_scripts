@@ -31,8 +31,7 @@ def numpy2moog_ew(arr, output=None, header=None):
         try:
             data = np.loadtxt(arr, skiprows=header.count('\n') + 1)
         except ValueError:
-            print('Was not able to load %s' % arr)
-            raise
+            raise ValueError('Was not able to load %s' % arr)
     elif isinstance(arr, list):
         data = np.array(arr, dtype=str)
         data = np.reshape(data, (1, 5))
@@ -84,9 +83,7 @@ def vald2numpy(input, output=None):
     try:
         from periodic.table import element
     except ImportError:
-        print('Could not import periodic')
-        print('Install with: pip install periodic')
-        raise SystemExit
+        raise ImportError('Could not import periodic\nInstall with: pip install periodic')
 
     if not output:  # Call the output file for .moog
         tmp = input.rpartition('.')

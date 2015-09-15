@@ -72,25 +72,26 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
         except ValueError:
             s = True
             fiw = 0
-        cc[i] = np.sum(f * fiw)
+        if fiw:
+            cc[i] = np.sum(f * fiw)
+        else:
+            cc[i] = 0
 
     if s:
-        print('Warning: You should lower the bounds on RV')
+        print('Warning: Lower the bounds on RV')
 
     if not np.any(cc):
         return 0, 0, 0, 0, 0
 
     # Fit the CCF with a gaussian
     cc[cc == 0] = np.mean(cc)
-    cc -= min(cc)
-    cc /= max(cc)
+    cc = (cc-min(cc))/(max(cc)-min(cc))
     RV, g = _fit_ccf(drvs, cc)
     return int(RV), drvs, cc, drvs, g(drvs)
 
 
 def _fit_ccf(rv, ccf):
     """Fit the CCF with a 1D gaussian
-
     :rv: The RV vector
     :ccf: The CCF values
     :returns: The RV, and best fit gaussian
@@ -192,7 +193,6 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
 
     # Shifted wavelength axis
     wlprime = wvl * (1.0 + v / 299792.458)
-    i = np.argmin(abs(wvl - 12780.6))
 
     f = sci.interp1d(wlprime, flux, bounds_error=False, fill_value=np.nan)
     nflux = f(wlprime)
@@ -325,14 +325,13 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
     I = fits.getdata(input)
     I /= np.median(I)
-    # Normalization (use first 50 points below 1.2 as continuum)
+    # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
     hdr = fits.getheader(input)
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:
-        rv = rv
         w = get_wavelength(hdr)
         I, w = dopplerShift(wvl=w, flux=I, v=rv, fill_value=0.95)
     else:
@@ -351,10 +350,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 's2' and rv1:
                 print('Warning: RV set for Sun. Calculate RV with CCF')
             if rv1 and ccf not in 's2':
-                I_sun, w_sun = dopplerShift(wvl=w_sun,
-                                            flux=I_sun,
-                                            v=rv1,
-                                            fill_value=0.95)
+                I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1, fill_value=0.95)
         else:
             sun = False
     elif sun and model:
@@ -379,10 +375,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 'm2' and rv1:
                 print('Warning: RV set for model. Calculate RV with CCF')
             if rv1 and ccf not in 'm2':
-                I_mod, w_mod = dopplerShift(wvl=w_mod,
-                                            flux=I_mod,
-                                            v=rv1,
-                                            fill_value=0.95)
+                I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1, fill_value=0.95)
         else:
             model = False
 
@@ -398,10 +391,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             if ccf in 't2' and rv2:
                 print('Warning: RV set for telluric, Calculate RV with CCF')
             if rv2 and ccf not in 't2':
-                I_tel, w_tel = dopplerShift(wvl=w_tel,
-                                            flux=I_tel,
-                                            v=rv2,
-                                            fill_value=0.95)
+                I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2, fill_value=0.95)
         else:
             telluric = False
 
@@ -411,30 +401,21 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             # remove tellurics from the Solar spectrum
             if telluric and sun:
                 I_sun = I_sun / I_tel
-            rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1),
-                                                        (w_sun, -I_sun + 1))
+            rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1), (w_sun, -I_sun + 1))
             if rv1 != 0:
-                I_sun, w_sun = dopplerShift(w_sun, I_sun,
-                                            v=rv1,
-                                            fill_value=0.95)
+                I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
                 rvs['sun'] = rv1
 
         if ccf in 'm2' and model:
-            rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I + 1),
-                                                        (w_mod, -I_mod + 1))
+            rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I + 1), (w_mod, -I_mod + 1))
             if rv1 != 0:
-                I_mod, w_mod = dopplerShift(w_mod, I_mod,
-                                            v=rv1,
-                                            fill_value=0.95)
+                I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
                 rvs['model'] = rv1
 
         if ccf in 't2' and telluric:
-            rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I + 1),
-                                                        (w_tel, -I_tel + 1))
+            rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I + 1), (w_tel, -I_tel + 1))
             if rv2 != 0:
-                I_tel, w_tel = dopplerShift(w_tel, I_tel,
-                                            v=rv2,
-                                            fill_value=0.95)
+                I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
                 rvs['telluric'] = rv2
 
     if len(rvs) == 0:
@@ -476,6 +457,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
 
+    # Add crosshair
     xlim = ax1.get_xlim()
     cursor = Cursor(ax1)
     plt.connect('motion_notify_event', cursor.mouse_move)
@@ -492,7 +474,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')
-    ax1.set_ylabel('"Normalized" intensity')
+    ax1.set_ylabel('Normalized intensity')
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
@@ -541,8 +523,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     elif ccf == 't':
         ax1.set_title('%s\nTelluric(CCF): %s km/s' % (input, rv2))
     elif ccf == '2':
-        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' %
-                      (input, rv1, rv2))
+        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (input, rv1, rv2))
     else:
         ax1.set_title(input)
     if sun or telluric or model:

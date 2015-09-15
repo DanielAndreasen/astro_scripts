@@ -474,7 +474,11 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')
+<<<<<<< HEAD
     ax1.set_ylabel('Normalized intensity')
+=======
+    ax1.set_ylabel('"Normalized" flux')
+>>>>>>> c45477fac3d1da14ba30e94f1a9ed59d03abe48c
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():

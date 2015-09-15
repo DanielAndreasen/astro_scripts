@@ -21,7 +21,7 @@ which means you can run them like
 and get some fancy help information on how to use them. The shell scripts have
 a block comment in top of the file.
 
-I recommend putting this folder in your PATH so the scripts are easily accesible. To do so depends on your system. I am sure [google](www.google.com) can help you ;)
+I recommend putting this folder in your PATH so the scripts are easily accesible. To do so depends on your system. I am sure [google](http://www.google.com) can help you ;)
 
 ## Dependencies
    * [Matplotlib](http://matplotlib.org/)

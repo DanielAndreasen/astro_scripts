@@ -12,7 +12,7 @@ try:
     import seaborn as sns
     sns.set_context('talk')
 except ImportError:
-    print('For better plots, try install seaborn (pip install seaborn)')
+    print('For better looking plots, try install seaborn (pip install seaborn)')
     pass
 
 

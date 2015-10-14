@@ -11,6 +11,7 @@ import matplotlib
 from astropy.io import fits
 from astropy.modeling import models, fitting
 import argparse
+from gooey import Gooey, GooeyParser
 
 
 def _download_spec(fout):
@@ -72,7 +73,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
         except ValueError:
             s = True
             fiw = 0
-        if fiw:
+        if fiw.any():
             cc[i] = np.sum(f * fiw)
         else:
             cc[i] = 0
@@ -242,30 +243,39 @@ def get_wavelength(hdr):
     return np.linspace(w0, w1, n, endpoint=False)
 
 
+@Gooey(program_name='Plot fits - Easy 1D fits plotting',advanced=False)
 def _parser():
     """Take care of all the argparse stuff.
 
     :returns: the args
     """
-    parser = argparse.ArgumentParser(description='Plot fits file for ARES. Be'
-                                     ' careful with large files')
-    parser.add_argument('input', help='Input fits file')
+    parser = GooeyParser(description='Plot 1D fits files with wavelength information in the header.')
+    parser.add_argument('fname',
+                        action='store',
+                        widget='FileChooser',
+                        help='Input fits file')
+    parser.add_argument('-m', '--model',
+                        default=False,
+                        widget='FileChooser',
+                        help='If not the Sun shoul be used as a model, put'
+                        ' the model here (only support BT-Settl for the'
+                        ' moment)',)
     parser.add_argument('-s', '--sun',
-                        help='Plot with spectra of the Sun ',
+                        help='Over plot solar spectrum',
                         action='store_true')
     parser.add_argument('-t', '--telluric',
-                        help='Plot telluric with spectrum',
+                        help='Over plot telluric spectrum',
                         action='store_true')
     parser.add_argument('-r', '--rv',
-                        help='RV correction to the spectra in km/s',
+                        help='RV shift to observed spectra in km/s',
                         default=False,
                         type=float)
     parser.add_argument('-r1', '--rv1',
-                        help='RV correction to the spectra in km/s (model/Sun)',
+                        help='RV shift to model/solar spectrum in km/s',
                         default=False,
                         type=float)
     parser.add_argument('-r2', '--rv2',
-                        help='RV correction to the spectra in km/s (telluric)',
+                        help='RV shift to telluric spectra in km/s',
                         default=False,
                         type=float)
     parser.add_argument('-l', '--lines',
@@ -275,25 +285,20 @@ def _parser():
                         default=False,
                         nargs='+',
                         type=float)
-    parser.add_argument('-m', '--model',
-                        help='If not the Sun shoul be used as a model, put'
-                        ' the model here (only support BT-Settl for the'
-                        ' moment)',
-                        default=False)
     parser.add_argument('-c', '--ccf',
-                        default='0',
-                        choices=['0', 's', 'm', 't', '2'],
+                        default='none',
+                        choices=['none', 'sun', 'model', 'telluric', 'both'],
                         help='Calculate the CCF for Sun/model or tellurics '
                         'or both.')
     args = parser.parse_args()
     return args
 
 
-def main(input, lines=False, model=False, telluric=False, sun=False,
-         rv=False, rv1=False, rv2=False, ccf='0'):
+def main(fname, lines=False, model=False, telluric=False, sun=False,
+         rv=False, rv1=False, rv2=False, ccf='none'):
     """Plot a fits file with extensive options
 
-    :input: Input spectra
+    :fname: Input spectra
     :lines: Absorption lines
     :model: Model spectrum
     :telluric: Telluric spectrum
@@ -301,7 +306,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
     :rv: RV of input spectrum
     :rv1: RV of Solar/model spectrum
     :rv2: RV of telluric spectrum
-    :ccf: Calculate CCF (s, m, t, 2)
+    :ccf: Calculate CCF (sun, model, telluric, both)
     :returns: RV if CCF have been calculated
     """
 
@@ -323,12 +328,12 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         print('Downloading telluric spectrum...')
         _download_spec(pathtel)
 
-    I = fits.getdata(input)
+    I = fits.getdata(fname)
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
-    hdr = fits.getheader(input)
+    hdr = fits.getheader(fname)
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:
@@ -347,13 +352,15 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         I_sun = I_sun[i]
         if len(w_sun) > 0:
             I_sun /= np.median(I_sun)
-            if ccf in 's2' and rv1:
+            if ccf in ['sun', 'both'] and rv1:
                 print('Warning: RV set for Sun. Calculate RV with CCF')
-            if rv1 and ccf not in 's2':
+            if rv1 and ccf not in ['sun', 'both']:
                 I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1, fill_value=0.95)
         else:
+            print('Warning: Solar spectrum not available in wavelength range.')
             sun = False
     elif sun and model:
+        print('Warning: Both solar spectrum and a model spectrum are selected. Using model spectrum.')
         sun = False
 
     if model:
@@ -372,11 +379,12 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
             # Normalization (use first 50 points below 1.2 as continuum)
             maxes = I_mod[(I_mod < 1.2)].argsort()[-50:][::-1]
             I_mod /= np.median(I_mod[maxes])
-            if ccf in 'm2' and rv1:
+            if ccf in ['model', 'both'] and rv1:
                 print('Warning: RV set for model. Calculate RV with CCF')
-            if rv1 and ccf not in 'm2':
+            if rv1 and ccf not in ['model', 'both']:
                 I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1, fill_value=0.95)
         else:
+            print('Warning: Model spectrum not available in wavelength range.')
             model = False
 
     if telluric:
@@ -388,40 +396,51 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         I_tel = I_tel[i]
         if len(w_tel) > 0:
             I_tel /= np.median(I_tel)
-            if ccf in 't2' and rv2:
+            if ccf in ['telluric', 'both'] and rv2:
                 print('Warning: RV set for telluric, Calculate RV with CCF')
-            if rv2 and ccf not in 't2':
+            if rv2 and ccf not in ['telluric', 'both']:
                 I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2, fill_value=0.95)
         else:
+            print('Warning: Telluric spectrum not available in wavelength range.')
             telluric = False
 
     rvs = {}
-    if ccf != '0':
-        if ccf in 's2' and sun:
+    if ccf != 'none':
+        if ccf in ['sun', 'both'] and sun:
             # remove tellurics from the Solar spectrum
             if telluric and sun:
+                print('Correcting solar spectrum for tellurics...')
                 I_sun = I_sun / I_tel
+            print('Calculating CCF for the Sun...')
             rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1), (w_sun, -I_sun + 1))
             if rv1 != 0:
+                print('Shifting solar spectrum...')
                 I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
                 rvs['sun'] = rv1
+                print('DONE')
 
-        if ccf in 'm2' and model:
+        if ccf in ['model', 'both'] and model:
+            print('Calculating CCF for the model...')
             rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I + 1), (w_mod, -I_mod + 1))
             if rv1 != 0:
+                print('Shifting model spectrum...')
                 I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
                 rvs['model'] = rv1
+                print('DONE')
 
-        if ccf in 't2' and telluric:
+        if ccf in ['telluric', 'both'] and telluric:
+            print('Calculating CCF for the model...')
             rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I + 1), (w_tel, -I_tel + 1))
             if rv2 != 0:
+                print('Shifting telluric spectrum...')
                 I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
                 rvs['telluric'] = rv2
+                print('DONE')
 
     if len(rvs) == 0:
-        ccf = '0'
+        ccf = 'none'
 
-    if ccf != '0':
+    if ccf != 'none':
         from matplotlib.gridspec import GridSpec
         fig = plt.figure(figsize=(16, 5))
         gs = GridSpec(1, 5)
@@ -474,11 +493,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
     ax1.set_xlabel('Wavelength')
-<<<<<<< HEAD
-    ax1.set_ylabel('Normalized intensity')
-=======
     ax1.set_ylabel('"Normalized" flux')
->>>>>>> c45477fac3d1da14ba30e94f1a9ed59d03abe48c
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
@@ -512,24 +527,23 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
         ax3.set_xlabel('RV [km/s]')
 
     if rv:
-        ax1.set_title('%s\nRV correction: %s km/s' % (input, rv))
+        ax1.set_title('%s\nRV correction: %s km/s' % (fname, rv))
     elif rv1 and rv2:
-        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' %
-                      (input, rv1, rv2))
+        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname, rv1, rv2))
     elif rv1 and not rv2:
-        ax1.set_title('%s\nSun/model: %s km/s' % (input, rv1))
+        ax1.set_title('%s\nSun/model: %s km/s' % (fname, rv1))
     elif not rv1 and rv2:
-        ax1.set_title('%s\nTelluric: %s km/s' % (input, rv2))
+        ax1.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
     elif ccf == 'm':
-        ax1.set_title('%s\nModel(CCF): %s km/s' % (input, rv1))
+        ax1.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
     elif ccf == 's':
-        ax1.set_title('%s\nSun(CCF): %s km/s' % (input, rv1))
+        ax1.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
     elif ccf == 't':
-        ax1.set_title('%s\nTelluric(CCF): %s km/s' % (input, rv2))
+        ax1.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
     elif ccf == '2':
-        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (input, rv1, rv2))
+        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (fname, rv1, rv2))
     else:
-        ax1.set_title(input)
+        ax1.set_title(fname)
     if sun or telluric or model:
         ax1.legend(loc=3, frameon=False)
     plt.show()
@@ -539,7 +553,7 @@ def main(input, lines=False, model=False, telluric=False, sun=False,
 
 if __name__ == '__main__':
     args = vars(_parser())
-    input = args.pop('input')
+    fname = args.pop('fname')
     opts = {k: args[k] for k in args}
 
-    main(input, **opts)
+    main(fname, **opts)

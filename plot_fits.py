@@ -70,12 +70,10 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
         # Shifted template evaluated at location of spectrum
         try:
             fiw = fi(w)
+            cc[i] = np.sum(f * fiw)
         except ValueError:
             s = True
             fiw = 0
-        if fiw.any():
-            cc[i] = np.sum(f * fiw)
-        else:
             cc[i] = 0
 
     if s:
@@ -243,7 +241,7 @@ def get_wavelength(hdr):
     return np.linspace(w0, w1, n, endpoint=False)
 
 
-@Gooey(program_name='Plot fits - Easy 1D fits plotting',advanced=False)
+@Gooey(program_name='Plot fits - Easy 1D fits plotting')
 def _parser():
     """Take care of all the argparse stuff.
 

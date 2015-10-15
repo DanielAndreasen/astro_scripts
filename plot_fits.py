@@ -492,6 +492,8 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
             lines *= (1.0 + rvs['sun'] / 299792.458)
         y0, y1 = ax1.get_ylim()
         ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
+        for line in lines:
+            plt.text(line-0.7, 1.2, str(line), rotation=90)
     ax1.set_xlabel('Wavelength')
     ax1.set_ylabel('"Normalized" flux')
 

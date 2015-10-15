@@ -307,7 +307,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     :ccf: Calculate CCF (sun, model, telluric, both)
     :returns: RV if CCF have been calculated
     """
-
+    print('\n-----------------------------------')
     path = os.path.expanduser('~/.plotfits/')
     pathsun = os.path.join(path, 'solarspectrum_01.fits')
     pathtel = os.path.join(path, 'telluric_NIR.fits')
@@ -481,17 +481,17 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     ax1.set_xlim(xlim)
 
     if lines:
-        lines = np.array(lines)
-        if rv1:
-            lines *= (1.0 + rv1 / 299792.458)
-        elif 'model' in rvs.keys():
-            lines *= (1.0 + rvs['model'] / 299792.458)
-        elif 'sun' in rvs.keys():
-            lines *= (1.0 + rvs['sun'] / 299792.458)
         y0, y1 = ax1.get_ylim()
-        ax1.vlines(lines, y0, y1, linewidth=2, color='m', alpha=0.5)
-        for line in lines:
-            plt.text(line-0.7, 1.2, str(line), rotation=90)
+        if rv1:
+            shift = (1.0 + rv1 / 299792.458)
+            for line in lines:
+                ax1.vlines(line*shift, y0, y1, linewidth=2, color='m', alpha=0.5)
+                ax1.text(line*shift-0.7, 1.2, str(line), rotation=90)
+        else:
+            for line in lines:
+                ax1.vlines(line, y0, y1, linewidth=2, color='m', alpha=0.5)
+                ax1.text(line-0.7, 1.2, str(line), rotation=90)
+
     ax1.set_xlabel('Wavelength')
     ax1.set_ylabel('"Normalized" flux')
 

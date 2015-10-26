@@ -9,13 +9,13 @@ import argparse
 
 def ll_filter(fname, col, limit, sign, element):
     data = np.loadtxt(fname, skiprows=1, unpack=True)
-    if sign > 0 and element:
+    if sign and element:
         i = (data[col] > limit) | (data[1] == element)
-    elif sign < 0 and element:
+    elif not sign and element:
         i = (data[col] < limit) | (data[1] == element)
-    elif sign > 0 and not element:
+    elif sign and not element:
         i = data[col] > limit
-    elif sign < 0 and not element:
+    elif not sign and not element:
         i = data[col] < limit
 
     return data[:, i].T
@@ -37,8 +37,9 @@ def _parser():
     parser.add_argument('-s', '--sign',
                         help='Positive (default) for including values above,'
                         ' negative for including values below',
-                        default=1,
-                        type=int)
+                        default=True,
+                        action='store_false'
+                        )
     parser.add_argument('-e', '--element',
                         help='If value is 26.1 then FeII lines will'
                         ' not be removed.',

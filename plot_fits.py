@@ -241,7 +241,7 @@ def get_wavelength(hdr):
     return np.linspace(w0, w1, n, endpoint=False)
 
 
-@Gooey(program_name='Plot fits - Easy 1D fits plotting')
+@Gooey(program_name='Plot fits - Easy 1D fits plotting', default_size=(610, 730))
 def _parser():
     """Take care of all the argparse stuff.
 
@@ -288,12 +288,14 @@ def _parser():
                         choices=['none', 'sun', 'model', 'telluric', 'both'],
                         help='Calculate the CCF for Sun/model or tellurics '
                         'or both.')
+    parser.add_argument('--ftype', help='Select which type the fits file is',
+                        choices=['ARES', 'CRIRES'], default='ARES')
     args = parser.parse_args()
     return args
 
 
 def main(fname, lines=False, model=False, telluric=False, sun=False,
-         rv=False, rv1=False, rv2=False, ccf='none'):
+         rv=False, rv1=False, rv2=False, ccf='none', ftype='ARES'):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -305,6 +307,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     :rv1: RV of Solar/model spectrum
     :rv2: RV of telluric spectrum
     :ccf: Calculate CCF (sun, model, telluric, both)
+    :ftype: Type of fits file (ARES or CRIRES)
     :returns: RV if CCF have been calculated
     """
     print('\n-----------------------------------')
@@ -326,7 +329,14 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         print('Downloading telluric spectrum...')
         _download_spec(pathtel)
 
-    I = fits.getdata(fname)
+    if ftype == 'ARES':
+        I = fits.getdata(fname)
+        w = get_wavelength(hdr)
+    elif ftype == 'CRIRES':
+        d = fits.getdata(fname)
+        hdr = fits.getheader(fname)
+        I = d['Extracted_OPT']
+        w = np.linspace(hdr['ESO INS WLEN MIN'], hdr['ESO INS WLEN MAX'], len(I)) * 10
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
@@ -335,10 +345,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:
-        w = get_wavelength(hdr)
         I, w = dopplerShift(wvl=w, flux=I, v=rv, fill_value=0.95)
-    else:
-        w = get_wavelength(hdr)
     w0, w1 = w[0] - dw, w[-1] + dw
 
     if sun and not model:
@@ -534,13 +541,13 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         ax1.set_title('%s\nSun/model: %s km/s' % (fname, rv1))
     elif not rv1 and rv2:
         ax1.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
-    elif ccf == 'm':
+    elif ccf == 'model':
         ax1.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
-    elif ccf == 's':
+    elif ccf == 'sun':
         ax1.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
-    elif ccf == 't':
+    elif ccf == 'telluric':
         ax1.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
-    elif ccf == '2':
+    elif ccf == 'both':
         ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (fname, rv1, rv2))
     else:
         ax1.set_title(fname)

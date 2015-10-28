@@ -4,6 +4,7 @@
 # My imports
 from __future__ import division, print_function
 import os
+import urllib
 import numpy as np
 import scipy.interpolate as sci
 import matplotlib.pyplot as plt
@@ -314,13 +315,18 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     path = os.path.expanduser('~/.plotfits/')
     pathsun = os.path.join(path, 'solarspectrum_01.fits')
     pathtel = os.path.join(path, 'telluric_NIR.fits')
+    pathwave = os.path.join(path, 'WAVE_PHOENIX-ACES-AGSS-COND-2011.fits')
     if os.path.isdir(path):
-        if not os.path.isfile(pathsun):
+        if sun and (not os.path.isfile(pathsun)):
             print('Downloading solar spectrum...')
             _download_spec(pathsun)
-        if not os.path.isfile(pathtel):
+        if telluric and (not os.path.isfile(pathtel)):
             print('Downloading telluric spectrum...')
             _download_spec(pathtel)
+        if model and (not os.path.isfile(pathwave)):
+            print('Downloading wavelength vector for model...')
+            url = 'ftp://phoenix.astro.physik.uni-goettingen.de/HiResFITS//WAVE_PHOENIX-ACES-AGSS-COND-2011.fits'
+            urllib.urlretrieve(url, pathwave)
     else:
         os.mkdir(path)
         print('%s Created' % path)
@@ -331,6 +337,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
 
     if ftype == 'ARES':
         I = fits.getdata(fname)
+        hdr = fits.getheader(fname)
         w = get_wavelength(hdr)
     elif ftype == 'CRIRES':
         d = fits.getdata(fname)
@@ -371,7 +378,10 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     if model:
         I_mod = fits.getdata(model)
         hdr = fits.getheader(model)
-        w_mod = get_wavelength(hdr)
+        if 'WAVE' in hdr.keys():
+            w_mod = fits.getdata(pathwave)
+        else:
+            w_mod = get_wavelength(hdr)
         nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
         w_mod = w_mod / (1 + 1e-6 * nre)
         i = (w_mod > w0) & (w_mod < w1)

@@ -299,7 +299,7 @@ def _parser():
 
 def main(fname, lines=False, model=False, telluric=False, sun=False,
          rv=False, rv1=False, rv2=False, ccf='none', ftype='ARES', 
-         fitsext='none'):
+         fitsext='0'):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -340,7 +340,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         _download_spec(pathtel)
     
     fitsext = int(fitsext)
-    
+
     if ftype == 'ARES':
         I = fits.getdata(fname, fitsext)
         hdr = fits.getheader(fname, fitsext)

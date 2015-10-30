@@ -340,10 +340,11 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         hdr = fits.getheader(fname)
         w = get_wavelength(hdr)
     elif ftype == 'CRIRES':
-        d = fits.getdata(fname)
-        hdr = fits.getheader(fname)
+        d = fits.getdata(fname,1)
+        hdr = fits.getheader(fname,1)
         I = d['Extracted_OPT']
-        w = np.linspace(hdr['ESO INS WLEN MIN'], hdr['ESO INS WLEN MAX'], len(I)) * 10
+        w = d['Wavelength']*10
+        #w = np.linspace(hdr['ESO INS WLEN MIN'], hdr['ESO INS WLEN MAX'], len(I)) * 10
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]

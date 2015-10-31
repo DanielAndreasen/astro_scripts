@@ -291,19 +291,17 @@ def _parser():
                         'or both.')
     parser.add_argument('--ftype', help='Select which type the fits file is',
                         choices=['ARES', 'CRIRES'], default='ARES')
-    parser.add_argument('--fitsext', help='Select Crires extention',
+    parser.add_argument('--fitsext', help='Select fits extention, Default 0.',
                         choices=['0', '1', '2', '3', '4'], default='0')
+    #parser.add_argument('--fitsext', default=0, type=int, 
+    #                    help='Select fits extention, 0 = Primary header')
     args = parser.parse_args()
     return args
 
 
 def main(fname, lines=False, model=False, telluric=False, sun=False,
-         rv=False, rv1=False, rv2=False, ccf='none', ftype='ARES', 
-<<<<<<< HEAD
+         rv=False, rv1=False, rv2=False, ccf='none', ftype='ARES',
          fitsext='0'):
-=======
-         fitsext='none'):
->>>>>>> fe8f32765887481754cd38bd686c1e7e24deb0ab
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -344,11 +342,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         _download_spec(pathtel)
     
     fitsext = int(fitsext)
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> fe8f32765887481754cd38bd686c1e7e24deb0ab
     if ftype == 'ARES':
         I = fits.getdata(fname, fitsext)
         hdr = fits.getheader(fname, fitsext)
@@ -363,7 +357,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
-    #hdr = fits.getheader(fname, fitsext)
+    #hdr = fits.getheader(fname)
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:

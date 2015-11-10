@@ -293,10 +293,7 @@ def _parser():
                         choices=['ARES', 'CRIRES'], default='ARES')
     parser.add_argument('--fitsext', help='Select fits extention, Default 0.',
                         choices=['0', '1', '2', '3', '4'], default='0')
-    #parser.add_argument('--fitsext', default=0, type=int, 
-    #                    help='Select fits extention, 0 = Primary header')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main(fname, lines=False, model=False, telluric=False, sun=False,
@@ -340,7 +337,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         _download_spec(pathsun)
         print('Downloading telluric spectrum...')
         _download_spec(pathtel)
-    
+
     fitsext = int(fitsext)
 
     if ftype == 'ARES':
@@ -352,12 +349,10 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         hdr = fits.getheader(fname, fitsext)
         I = d['Extracted_OPT']
         w = d['Wavelength']*10
-        #w = np.linspace(hdr['ESO INS WLEN MIN'], hdr['ESO INS WLEN MAX'], len(I)) * 10
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
-    #hdr = fits.getheader(fname)
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:

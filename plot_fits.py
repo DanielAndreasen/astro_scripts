@@ -290,15 +290,17 @@ def _parser():
                         help='Calculate the CCF for Sun/model or tellurics '
                         'or both.')
     parser.add_argument('--ftype', help='Select which type the fits file is',
-                        choices=['ARES', 'CRIRES'], default='ARES')
+                        choices=['1D', 'CRIRES', 'GIANO'], default='1D')
     parser.add_argument('--fitsext', help='Select fits extention, Default 0.',
                         choices=['0', '1', '2', '3', '4'], default='0')
+    parser.add_argument('--order', help='Select which GIANO order to be investigated',
+                        choices=map(str, range(32,81)), default='77')
     return parser.parse_args()
 
 
 def main(fname, lines=False, model=False, telluric=False, sun=False,
-         rv=False, rv1=False, rv2=False, ccf='none', ftype='ARES',
-         fitsext='0'):
+         rv=False, rv1=False, rv2=False, ccf='none', ftype='1D',
+         fitsext='0', order='77'):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -310,7 +312,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     :rv1: RV of Solar/model spectrum
     :rv2: RV of telluric spectrum
     :ccf: Calculate CCF (sun, model, telluric, both)
-    :ftype: Type of fits file (ARES or CRIRES)
+    :ftype: Type of fits file (1D, CRIRES, GIANO)
     :fitsext: Slecet fits extention to use (0,1,2,3,4)
     :returns: RV if CCF have been calculated
     """
@@ -319,6 +321,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     pathsun = os.path.join(path, 'solarspectrum_01.fits')
     pathtel = os.path.join(path, 'telluric_NIR.fits')
     pathwave = os.path.join(path, 'WAVE_PHOENIX-ACES-AGSS-COND-2011.fits')
+    pathGIANO = os.path.join(path, 'wavelength_GIANO.dat')
     if os.path.isdir(path):
         if sun and (not os.path.isfile(pathsun)):
             print('Downloading solar spectrum...')
@@ -339,8 +342,9 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         _download_spec(pathtel)
 
     fitsext = int(fitsext)
+    order = int(order)
 
-    if ftype == 'ARES':
+    if ftype == '1D':
         I = fits.getdata(fname, fitsext)
         hdr = fits.getheader(fname, fitsext)
         w = get_wavelength(hdr)
@@ -349,6 +353,13 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         hdr = fits.getheader(fname, fitsext)
         I = d['Extracted_OPT']
         w = d['Wavelength']*10
+    elif ftype == 'GIANO':
+        d = fits.getdata(fname)
+        I = d[order - 32]  # 32 is the first order
+        wd = np.loadtxt(pathGIANO)
+        w1, w2 = wd[wd[:, 0] == order][0][1:]
+        w = np.linspace(w1, w2, len(I))
+
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]

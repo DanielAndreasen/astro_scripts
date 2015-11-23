@@ -4,12 +4,15 @@
 # My imports
 from __future__ import division, print_function
 import os
-import urllib
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
-from gooey import Gooey, GooeyParser
+import scipy.interpolate as sci
+try:
+    from gooey import Gooey, GooeyParser
+except ImportError:
+    raise Error('Please install Gooey: pip install gooey')
 
 
 def _download_spec(fout):
@@ -53,7 +56,6 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     :dv: The velocity step
     :returns: The RV shift
     """
-    import scipy.interpolate as sci
     # Calculate the cross correlation
     s = False
     w, f = spectrum1
@@ -239,23 +241,28 @@ def get_wavelength(hdr):
     return np.linspace(w0, w1, n, endpoint=False)
 
 
-@Gooey(program_name='Plot fits - Easy 1D fits plotting', default_size=(610, 730))
+@Gooey(program_name='Plot fits - Easy spectra plotting', default_size=(610, 830))
 def _parser():
     """Take care of all the CLI/GUI stuff.
-
-    :returns: the args
     """
-    parser = GooeyParser(description='Plot 1D fits files with wavelength information in the header.')
+    parser = GooeyParser(description='Plot FITS spectra effortless')
     parser.add_argument('fname',
                         action='store',
                         widget='FileChooser',
-                        help='Input fits file')
+                        help='Input fits file', metavar='Fits file')
     parser.add_argument('-m', '--model',
                         default=False,
                         widget='FileChooser',
                         help='If not the Sun shoul be used as a model, put'
                         ' the model here (only support BT-Settl for the'
-                        ' moment)',)
+                        ' moment)', metavar='Model atmosphere')
+    path_lines = os.path.join(os.path.expanduser('~/.plotfits/'), 'linelist.moog')
+    parser.add_argument('--linelist',
+                        # default=False,
+                        default=path_lines,
+                        widget='FileChooser',
+                        help='Linelist with 1 line header and wavelength in 1st col', metavar='Line list')
+
     parser.add_argument('-s', '--sun',
                         help='Over plot solar spectrum',
                         action='store_true')
@@ -278,30 +285,30 @@ def _parser():
                         help='Lines to plot on top (multiple lines is an'
                         ' option). If multiple lines needs to be plotted, then'
                         ' separate with a space',
-                        default=False,
-                        nargs='+',
-                        type=float)
+                        default=False, type=float, nargs='+', metavar='Atomic lines')
     parser.add_argument('-c', '--ccf',
                         default='none',
                         choices=['none', 'sun', 'model', 'telluric', 'both'],
-                        help='Calculate the CCF for Sun/model or tellurics '
-                        'or both.')
+                        help='Calculate the CCF for Sun/model or tellurics or both.')
     parser.add_argument('--ftype', help='Select which type the fits file is',
-                        choices=['1D', 'CRIRES', 'GIANO'], default='1D')
-    parser.add_argument('--fitsext', help='Select fits extention, Default 0.',
-                        choices=['0', '1', '2', '3', '4'], default='0')
+                        choices=['1D', 'CRIRES', 'GIANO'], default='1D',
+                        metavar='Instrument')
+    parser.add_argument('--fitsext', help='Select fits extention for CRIRES',
+                        choices=map(str, range(1, 5)), default='1', metavar='FITS extention')
     parser.add_argument('--order', help='Select which GIANO order to be investigated',
-                        choices=map(str, range(32,81)), default='77')
+                        choices=map(str, range(32, 81)), default='77', metavar='GIANO order')
     return parser.parse_args()
 
 
-def main(fname, lines=False, model=False, telluric=False, sun=False,
+def main(fname, lines=False, linelist=False,
+         model=False, telluric=False, sun=False,
          rv=False, rv1=False, rv2=False, ccf='none', ftype='1D',
          fitsext='0', order='77'):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
     :lines: Absorption lines
+    :linelist: A file with the lines
     :model: Model spectrum
     :telluric: Telluric spectrum
     :sun: Solar spectrum
@@ -319,24 +326,20 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     pathtel = os.path.join(path, 'telluric_NIR.fits')
     pathwave = os.path.join(path, 'WAVE_PHOENIX-ACES-AGSS-COND-2011.fits')
     pathGIANO = os.path.join(path, 'wavelength_GIANO.dat')
-    if os.path.isdir(path):
-        if sun and (not os.path.isfile(pathsun)):
-            print('Downloading solar spectrum...')
-            _download_spec(pathsun)
-        if telluric and (not os.path.isfile(pathtel)):
-            print('Downloading telluric spectrum...')
-            _download_spec(pathtel)
-        if model and (not os.path.isfile(pathwave)):
-            print('Downloading wavelength vector for model...')
-            url = 'ftp://phoenix.astro.physik.uni-goettingen.de/HiResFITS//WAVE_PHOENIX-ACES-AGSS-COND-2011.fits'
-            urllib.urlretrieve(url, pathwave)
-    else:
+    if not os.path.isdir(path):
         os.mkdir(path)
-        print('%s Created' % path)
+        print('Created: %s' % path)
+    if sun and (not os.path.isfile(pathsun)):
         print('Downloading solar spectrum...')
         _download_spec(pathsun)
+    if telluric and (not os.path.isfile(pathtel)):
         print('Downloading telluric spectrum...')
         _download_spec(pathtel)
+    if model and (not os.path.isfile(pathwave)):
+        print('Downloading wavelength vector for model...')
+        import urllib
+        url = 'ftp://phoenix.astro.physik.uni-goettingen.de/HiResFITS//WAVE_PHOENIX-ACES-AGSS-COND-2011.fits'
+        urllib.urlretrieve(url, pathwave)
 
     fitsext = int(fitsext)
     order = int(order)
@@ -354,8 +357,8 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
         d = fits.getdata(fname)
         I = d[order - 32]  # 32 is the first order
         wd = np.loadtxt(pathGIANO)
-        w1, w2 = wd[wd[:, 0] == order][0][1:]
-        w = np.linspace(w1, w2, len(I))
+        w0, w1 = wd[wd[:, 0] == order][0][1:]
+        w = np.linspace(w0, w1, len(I), endpoint=True)
 
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)
@@ -437,14 +440,13 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
             # remove tellurics from the Solar spectrum
             if telluric and sun:
                 print('Correcting solar spectrum for tellurics...')
-                I_sun = I_sun / I_tel
             print('Calculating CCF for the Sun...')
             rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1), (w_sun, -I_sun + 1))
             if rv1 != 0:
                 print('Shifting solar spectrum...')
                 I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
                 rvs['sun'] = rv1
-                print('DONE')
+                print('DONE\n')
 
         if ccf in ['model', 'both'] and model:
             print('Calculating CCF for the model...')
@@ -453,7 +455,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
                 print('Shifting model spectrum...')
                 I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
                 rvs['model'] = rv1
-                print('DONE')
+                print('DONE\n')
 
         if ccf in ['telluric', 'both'] and telluric:
             print('Calculating CCF for the model...')
@@ -462,7 +464,7 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
                 print('Shifting telluric spectrum...')
                 I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
                 rvs['telluric'] = rv2
-                print('DONE')
+                print('DONE\n')
 
     if len(rvs) == 0:
         ccf = 'none'
@@ -509,7 +511,12 @@ def main(fname, lines=False, model=False, telluric=False, sun=False,
     plt.connect('motion_notify_event', cursor.mouse_move)
     ax1.set_xlim(xlim)
 
-    if lines:
+    if linelist or lines:
+        try:
+            lines = np.loadtxt(linelist, usecols=(0,), skiprows=1)
+            lines = lines[(lines <= max(w)) & (lines >= min(w))]
+        except IOError:
+            pass
         y0, y1 = ax1.get_ylim()
         if rv1:
             shift = (1.0 + rv1 / 299792.458)

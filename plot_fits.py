@@ -6,11 +6,9 @@ from __future__ import division, print_function
 import os
 import urllib
 import numpy as np
-import scipy.interpolate as sci
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
-from astropy.modeling import models, fitting
 from gooey import Gooey, GooeyParser
 
 
@@ -55,7 +53,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
     :dv: The velocity step
     :returns: The RV shift
     """
-
+    import scipy.interpolate as sci
     # Calculate the cross correlation
     s = False
     w, f = spectrum1
@@ -94,8 +92,8 @@ def _fit_ccf(rv, ccf):
     :rv: The RV vector
     :ccf: The CCF values
     :returns: The RV, and best fit gaussian
-
     """
+    from astropy.modeling import models, fitting
     ampl = 1
     mean = rv[ccf == ampl]
     I = np.where(ccf == ampl)[0]

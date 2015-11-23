@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
 from astropy.modeling import models, fitting
-import argparse
 from gooey import Gooey, GooeyParser
 
 
@@ -244,7 +243,7 @@ def get_wavelength(hdr):
 
 @Gooey(program_name='Plot fits - Easy 1D fits plotting', default_size=(610, 730))
 def _parser():
-    """Take care of all the argparse stuff.
+    """Take care of all the CLI/GUI stuff.
 
     :returns: the args
     """

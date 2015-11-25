@@ -345,8 +345,8 @@ def main(fname, lines=False, linelist=False,
     order = int(order)
 
     if ftype == '1D':
-        I = fits.getdata(fname, fitsext)
-        hdr = fits.getheader(fname, fitsext)
+        I = fits.getdata(fname)
+        hdr = fits.getheader(fname)
         w = get_wavelength(hdr)
     elif ftype == 'CRIRES':
         d = fits.getdata(fname, fitsext)

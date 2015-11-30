@@ -66,7 +66,10 @@ if __name__ == '__main__':
 
     data = ll_filter(fname, col, limit, sign, element)
     print('Result saved in %s' % output)
+    try:
     np.savetxt(output, data,
                fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
                header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',
                comments='')
+    except:
+        np.savetxt(output, data)

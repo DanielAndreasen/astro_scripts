@@ -113,118 +113,24 @@ def _fit_ccf(rv, ccf):
 
 
 def nrefrac(wavelength, density=1.0):
-    """Calculate refractive index of air from Cauchy formula. Input:
-    wavelength in Angstrom, density of air in amagat (relative to STP,
-    e.g. ~10% decrease per 1000m above sea level). Returns N = (n-1) *
-    1.e6.
-
-    The IAU standard for conversion from air to vacuum wavelengths is given
-    in Morton (1991, ApJS, 77, 119). For vacuum wavelengths (VAC) in
-    Angstroms, convert to air wavelength (AIR) via:
-
-    AIR = VAC / (1.0 + 2.735182E-4 + 131.4182 / VAC^2 + 2.76249E8 / VAC^4)
+    """
+    Refactory index by Elden 1953 from vacuum to air.
     """
     wl = np.array(wavelength)
 
-    wl2inv = (1.e4 / wl) ** 2
-    refracstp = 272.643 + 1.2288 * wl2inv + 3.555e-2 * wl2inv ** 2
-    return density * refracstp
+    s2 = (1e4/wl)**2
+    n = 1 + 6.4328e-5 + 2.94981e-2/(146+s2) + 2.554e-4/(41+s2)
+    return density * n
 
 
 def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
     """Doppler shift a given spectrum.
-    This code is taken from the PyAstronomy project:
-    https://github.com/sczesla/PyAstronomy
-    All credit to the author.
-
-    A simple algorithm to apply a Doppler shift
-    to a spectrum. This function, first, calculates
-    the shifted wavelength axis and, second, obtains
-    the new, shifted flux array at the old, unshifted
-    wavelength points by linearly interpolating.
-
-    Due to the shift, some bins at the edge of the
-    spectrum cannot be interpolated, because they
-    are outside the given input range. The default
-    behavior of this function is to return numpy.NAN
-    values at those points. One can, however, specify
-    the `edgeHandling` parameter to choose a different
-    handling of these points.
-
-    If "firstlast" is specified for `edgeHandling`,
-    the out-of-range points at the red or blue edge
-    of the spectrum will be filled using the first
-    (at the blue edge) and last (at the red edge) valid
-    point in the shifted, i.e., the interpolated, spectrum.
-
-    If "fillValue" is chosen for edge handling,
-    the points under consideration will be filled with
-    the value given through the `fillValue` keyword.
-
-    .. warning:: Shifting a spectrum using linear
-                interpolation has an effect on the
-                noise of the spectrum. No treatment
-                of such effects is implemented in this
-                function.
-
-    Parameters
-    ----------
-    wvl : array
-        Input wavelengths in A.
-    flux : array
-        Input flux.
-    v : float
-        Doppler shift in km/s
-    edgeHandling : string, {"fillValue", "firstlast"}, optional
-        The method used to handle the edges of the
-        output spectrum.
-    fillValue : float, optional
-        If the "fillValue" is specified as edge handling method,
-        the value used to fill the edges of the output spectrum.
-
-    Returns
-    -------
-    nflux : array
-        The shifted flux array at the *old* input locations.
-    wlprime : array
-        The shifted wavelength axis.
+    Does not interpolate to a new wavelength vector, but does shift it.
     """
 
     # Shifted wavelength axis
     wlprime = wvl * (1.0 + v / 299792.458)
-
-    f = sci.interp1d(wlprime, flux, bounds_error=False, fill_value=np.nan)
-    nflux = f(wlprime)
-
-    if edgeHandling == "firstlast":
-        firsts = []
-        # Search for first non-NaN value save indices of
-        # leading NaN values
-        for i, nfluxi in enumerate(nflux):
-            if np.isnan(nfluxi):
-                firsts.append(i)
-            else:
-                firstval = nfluxi
-                break
-
-        # Do the same for trailing NaNs
-        lasts = []
-        for i, nfluxi in enumerate(nflux[::-1]):
-            if np.isnan(nfluxi):
-                lasts.append(i)
-            else:
-                lastval = nfluxi
-                break
-
-        # Use first and last non-NaN value to
-        # fill the nflux array
-        if fill_value:
-            nflux[firsts] = fill_value
-            nflux[lasts] = fill_value
-        else:
-            nflux[firsts] = firstval
-            nflux[lasts] = lastval
-    return nflux, wlprime
+    return flux, wlprime
 
 
 def get_wavelength(hdr):
@@ -291,7 +197,7 @@ def _parser():
                         choices=['none', 'sun', 'model', 'telluric', 'both'],
                         help='Calculate the CCF for Sun/model or tellurics or both.')
     parser.add_argument('--ftype', help='Select which type the fits file is',
-                        choices=['1D', 'CRIRES', 'GIANO'], default='1D',
+                        choices=['1D', 'CRIRES', 'GIANO', 'UVES'], default='1D',
                         metavar='Instrument')
     parser.add_argument('--fitsext', help='Select fits extention for CRIRES',
                         choices=map(str, range(1, 5)), default='1', metavar='FITS extention')
@@ -359,6 +265,10 @@ def main(fname, lines=False, linelist=False,
         wd = np.loadtxt(pathGIANO)
         w0, w1 = wd[wd[:, 0] == order][0][1:]
         w = np.linspace(w0, w1, len(I), endpoint=True)
+    elif ftype == 'UVES':
+        raise NotImplementedError('Please be patient. Not quite there yet')
+        # d = fits.getdata(fname)
+        # I = d['']
 
     I /= np.median(I)
     # Normalization (use first 50 points below 1.2 as constant continuum)

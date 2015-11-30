@@ -9,7 +9,7 @@ try:
 except ImportError:
     url = 'https://astroquery.readthedocs.org/'
     raise ImportError('astroquery is needed (pip). More info here: %s' % url)
-import argparse
+from gooey import Gooey, GooeyParser
 import warnings
 
 
@@ -25,27 +25,22 @@ def _q2a(lst):
     return np.array(lst_new)
 
 
+@Gooey()
 def _parser():
-    parser = argparse.ArgumentParser(description='Look up an object in VizieR'
+    parser = GooeyParser(description='Look up an object in VizieR'
                                                  ' and print mean/median'
                                                  ' values of given parameters')
     parser.add_argument('object', help='Object, e.g. HD20010', nargs='+')
-    parser.add_argument('-p', '--params',
-                        help='List of parameters (Teff, logg, [Fe/H] be default)',
-                        action='store_true')
-    parser.add_argument('-m', '--method',
-                        help='Which method to print values (mean or median).'
-                             ' Default is both',
-                        choices=['median', 'mean', 'both'],
-                        default='both')
-    parser.add_argument('-c', '--coordinate',
-                        help='Return the RA and DEC (format for NOT\'s visibility plot)',
-                        default=False,
-                        action='store_true')
+    parser.add_argument('-p', '--params', default=True, action='store_true',
+                        help='List of parameters (Teff, logg, [Fe/H] be default)')
+    parser.add_argument('-m', '--method', choices=['median', 'mean', 'both'], default='both',
+                        help='Which method to print values (mean or median). Default is both')
+    parser.add_argument('-c', '--coordinate', default=False, action='store_true',
+                        help='Return the RA and DEC (format for NOT\'s visibility plot)')
     return parser.parse_args()
 
 
-def vizier_query(object, params=None, method='both', coordinate=False):
+def vizier_query(object, params=True, method='both', coordinate=False):
     """Give mean/median values of some parameters for an object.
     This script use VizieR for looking up the object.
 
@@ -54,12 +49,7 @@ def vizier_query(object, params=None, method='both', coordinate=False):
     :method: Print median, main or both
 
     :returns: A dictionary with the parameters
-
     """
-
-    methods = ('median', 'mean', 'both')
-    if method not in methods:
-        raise ValueError('method must be one of:', methods)
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
@@ -75,9 +65,9 @@ def vizier_query(object, params=None, method='both', coordinate=False):
                 pass
             if ra != 0:
                 break
-        print('%s %s %s' % (object, ra, dec))
+        print('\n\n%s %s %s' % (object, ra, dec))
     else:
-        print('Object: %s' % object)
+        print('\n\nObject: %s' % object)
 
     parameters = {'Teff': [], 'logg': [], '__Fe_H_': []}
     if params:
@@ -117,5 +107,8 @@ def vizier_query(object, params=None, method='both', coordinate=False):
 
 if __name__ == '__main__':
     args = _parser()
-    for object in args.object:
-        vizier_query(object, params=args.params, method=args.method, coordinate=args.coordinate)
+    stars = args.object[0].split(' ')
+    if len(stars) == 1:
+        stars = args.object[0].split(',')
+    for star in stars:
+        vizier_query(star, params=args.params, method=args.method, coordinate=args.coordinate)

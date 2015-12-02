@@ -274,6 +274,7 @@ def main(fname, lines=False, linelist=False,
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])
+    I[I<0] = 0
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:

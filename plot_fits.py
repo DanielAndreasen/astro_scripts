@@ -48,7 +48,7 @@ class Cursor:
         plt.draw()
 
 
-def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=200, drv=1):
+def ccf_astro(spectrum1, spectrum2, rvmin=-200, rvmax=200, drv=1):
     """Make a CCF between 2 spectra and find the RV
 
     :spectrum1: The stellar spectrum

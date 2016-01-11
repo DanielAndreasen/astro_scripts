@@ -119,7 +119,7 @@ def nrefrac(wavelength, density=1.0):
     wl = np.array(wavelength)
 
     s2 = (1e4/wl)**2
-    n = 1 + 6.4328e-5 + 2.94981e-2/(146+s2) + 2.554e-4/(41+s2)
+    n = 1.0 + 6.4328e-5 + (2.94981e-2/(146.0 - s2)) + (2.554e-4/(41. - s2))
     return density * n
 
 
@@ -309,7 +309,7 @@ def main(fname, lines=False, linelist=False,
         else:
             w_mod = get_wavelength(hdr)
         nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
-        w_mod = w_mod / (1 + 1e-6 * nre)
+        w_mod = w_mod/nre
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]

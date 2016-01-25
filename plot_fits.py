@@ -86,7 +86,7 @@ def ccf_astro(spectrum1, spectrum2, rvmin=-200, rvmax=200, drv=1):
     cc[cc == 0] = np.mean(cc)
     cc = (cc-min(cc))/(max(cc)-min(cc))
     RV, g = _fit_ccf(drvs, cc)
-    return int(RV), drvs, cc, drvs, g(drvs)
+    return RV, drvs, cc, drvs, g(drvs)
 
 
 def _fit_ccf(rv, ccf):
@@ -474,21 +474,21 @@ def main(fname, lines=False, linelist=False,
         ax3.set_xlabel('RV [km/s]')
 
     if rv:
-        ax1.set_title('%s\nRV correction: %s km/s' % (fname, rv))
+        ax1.set_title('%s\nRV correction: %s km/s' % (fname, int(rv)))
     elif rv1 and rv2:
-        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname, rv1, rv2))
+        ax1.set_title('%s\nSun/model: %s km/s, telluric: %s km/s' % (fname, int(rv1), int(rv2)))
     elif rv1 and not rv2:
-        ax1.set_title('%s\nSun/model: %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nSun/model: %s km/s' % (fname, int(rv1)))
     elif not rv1 and rv2:
-        ax1.set_title('%s\nTelluric: %s km/s' % (fname, rv2))
+        ax1.set_title('%s\nTelluric: %s km/s' % (fname, int(rv2)))
     elif ccf == 'model':
-        ax1.set_title('%s\nModel(CCF): %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nModel(CCF): %s km/s' % (fname, int(rv1)))
     elif ccf == 'sun':
-        ax1.set_title('%s\nSun(CCF): %s km/s' % (fname, rv1))
+        ax1.set_title('%s\nSun(CCF): %s km/s' % (fname, int(rv1)))
     elif ccf == 'telluric':
-        ax1.set_title('%s\nTelluric(CCF): %s km/s' % (fname, rv2))
+        ax1.set_title('%s\nTelluric(CCF): %s km/s' % (fname, int(rv2)))
     elif ccf == 'both':
-        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (fname, rv1, rv2))
+        ax1.set_title('%s\nSun/model(CCF): %s km/s, telluric(CCF): %s km/s' % (fname, int(rv1), int(rv2)))
     else:
         ax1.set_title(fname)
     if sun or telluric or model:

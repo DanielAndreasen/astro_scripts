@@ -4,25 +4,23 @@
 # My imports
 import argparse
 import gzip
+import os
 
 
 def _parser():
     parser = argparse.ArgumentParser(description='Prepare the data downloaded '
                                      'from VALD.')
-    parser.add_argument('input', help='input compressed file')
+    parser.add_argument('input', help='input compressed file', type=str)
     parser.add_argument('-o', '--output',
                         help='Optional output',
-                        default=False)
+                        default=False, type=str)
     return parser.parse_args()
 
 
 def main(input, output=False):
-    if not isinstance(input, str):
-        raise TypeError('Input must be a str. A %s was parsed' % type(input))
-    if not isinstance(output, str) and output:
-        raise TypeError('Output must be a str. A %s was parsed' % type(output))
 
-    # TODO: Check if the input exists
+    if not os.path.isfile(input):
+        raise IOError('File: %s does not exists' % input)
 
     fname = input.rpartition('.')[0]
     if not output:

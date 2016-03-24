@@ -270,7 +270,10 @@ def main(fname, lines=False, linelist=False,
         # d = fits.getdata(fname)
         # I = d['']
 
-    I /= np.median(I)
+    if np.median(I) != 0:
+        I /= np.median(I)
+    else:
+        I /= I.max()
     # Normalization (use first 50 points below 1.2 as constant continuum)
     maxes = I[(I < 1.2)].argsort()[-50:][::-1]
     I /= np.median(I[maxes])

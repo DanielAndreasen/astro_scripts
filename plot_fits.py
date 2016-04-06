@@ -412,11 +412,11 @@ def main(fname, lines=False, linelist=False,
     ax1.xaxis.set_major_formatter(x_formatter)
 
     if sun and not model:
-        ax1.plot(w_sun, I_sun, '-g', lw=2, alpha=0.6, label='Sun')
+        ax1.plot(w_sun, I_sun, '-g', lw=2, alpha=0.3, label='Sun')
     if telluric:
-        ax1.plot(w_tel, I_tel, '-r', lw=2, alpha=0.5, label='Telluric')
+        ax1.plot(w_tel, I_tel, '-r', lw=2, alpha=0.3, label='Telluric')
     if model:
-        ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.5, label='Model')
+        ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.3, label='Model')
     ax1.plot(w, I, '-k', lw=2, label='Star')
 
     # Add crosshair

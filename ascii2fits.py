@@ -27,8 +27,11 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
         ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
     else:
         ll, flux = fname
-    if unit == 'n':
+    if unit == 'nn':  # nano meters
         ll *= 10
+    elif unit == 'cm':  # Inverse centimeters
+        ll = 10E7/ll
+        ll = ll[::-1]
     N = int((ll[-1] - ll[0]) / dA)
 
     flux_int_func = interp1d(ll, flux, kind='linear')
@@ -43,8 +46,8 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
 
 
 def _parser():
-    parser = argparse.ArgumentParser(description='Convert a 2-column ASCII'
-                                     'with wavelength and intensity to a 1D'
+    parser = argparse.ArgumentParser(description='Convert a 2-column ASCII '
+                                     'with wavelength and intensity to a 1D '
                                      'spectra for splot@IRAF or ARES')
     parser.add_argument('input', help='File name of ASCII file')
     parser.add_argument('-o', '--output',
@@ -58,15 +61,12 @@ def _parser():
                         type=float)
     parser.add_argument('-u', '--unit',
                         help='Unit of wavelength vector (default: AA)',
-                        default='a')
+                        default='a', choices=['aa', 'nm', 'cm'])
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
     args = _parser()
-
-    if args.unit not in ('a', 'n'):
-        raise ValueError(r'Unit can be a (Å) or n (nm)')
 
     convert2fits(args.input, args.output, args.delta, args.unit)

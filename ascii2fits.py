@@ -8,16 +8,40 @@ from scipy.interpolate import interp1d
 import argparse
 
 
-def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
+def vac2air(wavelength, density=1.0):
+    """
+    Refactory index by Elden 1953 from vacuum to air.
+    """
+    wl = np.array(wavelength)
+
+    s2 = (1e4/wl)**2
+    n = 1.0 + 6.4328e-5 + (2.94981e-2/(146.0 - s2)) + (2.554e-4/(41. - s2))
+    return wavelength/(density * n)
+
+
+def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True, vac=None):
     """Convert a 2-column ASCII to fits format for splot@IRAF or ARES.
 
-    :fname: File name of ASCII. First column is wavelength and second column is
-    intensity.
-    :fout: Output name. By default it returns the output is the ASCII name with
-    a fits extension.
-    :dA: The wavelength step. 0.01 Angstrom by default.
-    :read: If True, the data will be read from file, fname. If False, fname
-    should contain the wavelength and flux vector
+    Inputs
+    ------
+    fname : str
+      File name of ASCII. First column is wavelength and second column is
+      intensity.
+    fout : str (default: None)
+      Output name. By default it returns the output is the ASCII name with
+      a fits extension.
+    dA : float (default: 0.01)
+      The wavelength step in Angstrom.
+    read : bool (default: True)
+      If True, the data will be read from file, fname. If False, fname
+      should contain the wavelength and flux vector
+    vac : bool (default: None)
+      If True convert the wavelength vector from vacuum to air
+
+    Output
+    ------
+    fout : fits
+      Spectrum saved to fout in 1D format.
     """
 
     if not fout:
@@ -27,12 +51,17 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
         ll, flux = np.loadtxt(fname, usecols=(0, 1), unpack=True)
     else:
         ll, flux = fname
+
     if unit == 'nn':  # nano meters
         ll *= 10
     elif unit == 'cm':  # Inverse centimeters
         ll = 10E7/ll
         ll = ll[::-1]
         flux = flux[::-1]
+
+    if vac:
+        ll = vac2air(ll)
+
     N = int((ll[-1] - ll[0]) / dA)
 
     flux_int_func = interp1d(ll, flux, kind='linear')
@@ -63,6 +92,8 @@ def _parser():
     parser.add_argument('-u', '--unit',
                         help='Unit of wavelength vector (default: AA)',
                         default='a', choices=['aa', 'nm', 'cm'])
+    parser.add_argument('-v', '--vacuum', action='store_true', default=False,
+                        help='If input spectrum is in vacuum, convert to air wavelengths')
     args = parser.parse_args()
     return args
 
@@ -70,4 +101,5 @@ def _parser():
 if __name__ == '__main__':
     args = _parser()
 
-    convert2fits(args.input, args.output, args.delta, args.unit)
+    convert2fits(args.input, fout=args.output, dA=args.delta,
+                 unit=args.unit, vac=args.vacuum)

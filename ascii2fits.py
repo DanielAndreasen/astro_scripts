@@ -32,6 +32,7 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True):
     elif unit == 'cm':  # Inverse centimeters
         ll = 10E7/ll
         ll = ll[::-1]
+        flux = flux[::-1]
     N = int((ll[-1] - ll[0]) / dA)
 
     flux_int_func = interp1d(ll, flux, kind='linear')

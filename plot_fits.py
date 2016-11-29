@@ -16,8 +16,6 @@ except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
 
-
-def _download_spec(fout):
 try:
     from gooey import Gooey, GooeyParser
 except ImportError:

@@ -415,7 +415,7 @@ def main(fname, lines=False, linelist=False,
         ax1.plot(w_tel, I_tel, '-r', lw=1, alpha=0.5, label='Telluric')
     if model:
         ax1.plot(w_mod, I_mod, '-g', lw=1, alpha=0.5, label='Model')
-    ax1.plot(w, I, '-k', lw=2, label='Star')
+    ax1.plot(w, I, '-k', lw=1, label='Star')
 
     # Add crosshair
     xlim = ax1.get_xlim()
@@ -439,7 +439,7 @@ def main(fname, lines=False, linelist=False,
         else:
             lineid_plot.plot_line_ids(w, I, lines, annotation, ax=ax1, plot_kwargs=pk)
 
-    ax1.set_ylim(min(I)-0.10*min(I), 1.1*max(I))
+    ax1.set_ylim(min(I)-0.05*min(I), 1.05*max(I))
     ax1.set_xlabel('Wavelength')
     ax1.set_ylabel('"Normalized" flux')
 

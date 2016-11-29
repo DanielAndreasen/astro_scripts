@@ -10,6 +10,15 @@ import matplotlib
 from astropy.io import fits
 import scipy.interpolate as sci
 try:
+    import lineid_plot
+    lineidImport = True
+except ImportError:
+    lineidImport = False
+    print('Install lineid_plot (pip install lineid_plot) for more functionality.')
+
+
+def _download_spec(fout):
+try:
     from gooey import Gooey, GooeyParser
 except ImportError:
     raise Error('Please install Gooey: pip install gooey')
@@ -392,7 +401,6 @@ def main(fname, lines=False, linelist=False,
             ax1 = plt.subplot(gs[:, 0:-1])
             ax2 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
-            ax2.set_facecolor('black')
         elif len(rvs) == 2:
             gs.update(wspace=0.25, hspace=0.35, left=0.01, right=0.99)
             ax1 = plt.subplot(gs[:, 1:4])
@@ -400,13 +408,10 @@ def main(fname, lines=False, linelist=False,
             ax3 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
             ax3.set_yticklabels([])
-            ax2.set_facecolor('black')
-            ax3.set_facecolor('black')
     else:
         fig = plt.figure(figsize=(16, 5))
         ax1 = fig.add_subplot(111)
 
-    ax1.set_facecolor('black')
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()
@@ -421,7 +426,7 @@ def main(fname, lines=False, linelist=False,
         ax1.plot(w_tel, I_tel, '-r', lw=1, alpha=0.5, label='Telluric')
     if model:
         ax1.plot(w_mod, I_mod, '-g', lw=1, alpha=0.5, label='Model')
-    ax1.plot(w, I, '-w', lw=2, label='Star')
+    ax1.plot(w, I, '-k', lw=2, label='Star')
 
     # Add crosshair
     xlim = ax1.get_xlim()
@@ -429,51 +434,51 @@ def main(fname, lines=False, linelist=False,
     plt.connect('motion_notify_event', cursor.mouse_move)
     ax1.set_xlim(xlim)
 
-    if linelist or lines:
+    if (linelist or lines) and lineidImport:
         try:
-            lines = np.loadtxt(linelist, usecols=(0,), skiprows=1)
+            lines, elements = np.loadtxt(linelist, usecols=(0, 1), skiprows=1, unpack=True)
             lines = lines[(lines <= max(w)) & (lines >= min(w))]
+            elements = elements[(lines <= max(w)) & (lines >= min(w))]
+            ele = {'26.0': 'FeI', '26.1': 'FeII'}
+            annotation = ['{}: {}'.format(ele[str(element)], line) for element, line in zip(elements, lines)]
+            pk = lineid_plot.initial_plot_kwargs()
         except IOError:
             pass
-        y0, y1 = ax1.get_ylim()
         if rv1:
             shift = (1.0 + rv1 / 299792.458)
-            for line in lines:
-                ax1.vlines(line*shift, y0, y1, linewidth=2, color='m', alpha=0.5)
-                ax1.text(line*shift-0.7, 1.2, str(line), rotation=90, color='w')
+            lineid_plot.plot_line_ids(w, I, lines*shift, annotation, ax=ax1, plot_kwargs=pk)
         else:
-            for line in lines:
-                ax1.vlines(line, y0, y1, linewidth=2, color='m', alpha=0.5)
-                ax1.text(line-0.7, 1.2, str(line), rotation=90, color='w')
+            lineid_plot.plot_line_ids(w, I, lines, annotation, ax=ax1, plot_kwargs=pk)
 
+    ax1.set_ylim(min(I)-0.10*min(I), 1.1*max(I))
     ax1.set_xlabel('Wavelength')
     ax1.set_ylabel('"Normalized" flux')
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-w', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-w', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')
         if 'telluric' in rvs.keys():
-            ax2.plot(r_tel, c_tel, '-w', lw=2)
+            ax2.plot(r_tel, c_tel, '-k', lw=2)
             ax2.plot(x_tel, y_tel, '--r', lw=2)
             ax2.set_title('CCF (tel)')
         ax2.set_xlabel('RV [km/s]')
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-w', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-w', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')
-        ax3.plot(r_tel, c_tel, '-w', lw=2)
+        ax3.plot(r_tel, c_tel, '-k', lw=2)
         ax3.plot(x_tel, y_tel, '--r', lw=2)
         ax3.set_title('CCF (tel)')
 

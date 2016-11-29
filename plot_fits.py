@@ -392,6 +392,7 @@ def main(fname, lines=False, linelist=False,
             ax1 = plt.subplot(gs[:, 0:-1])
             ax2 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
+            ax2.set_facecolor('black')
         elif len(rvs) == 2:
             gs.update(wspace=0.25, hspace=0.35, left=0.01, right=0.99)
             ax1 = plt.subplot(gs[:, 1:4])
@@ -399,10 +400,13 @@ def main(fname, lines=False, linelist=False,
             ax3 = plt.subplot(gs[:, -1])
             ax2.set_yticklabels([])
             ax3.set_yticklabels([])
+            ax2.set_facecolor('black')
+            ax3.set_facecolor('black')
     else:
         fig = plt.figure(figsize=(16, 5))
         ax1 = fig.add_subplot(111)
 
+    ax1.set_facecolor('black')
     # Start in pan mode with these two lines
     manager = plt.get_current_fig_manager()
     manager.toolbar.pan()
@@ -412,12 +416,12 @@ def main(fname, lines=False, linelist=False,
     ax1.xaxis.set_major_formatter(x_formatter)
 
     if sun and not model:
-        ax1.plot(w_sun, I_sun, '-g', lw=2, alpha=0.3, label='Sun')
+        ax1.plot(w_sun, I_sun, '-g', lw=1, alpha=0.6, label='Sun')
     if telluric:
-        ax1.plot(w_tel, I_tel, '-r', lw=2, alpha=0.3, label='Telluric')
+        ax1.plot(w_tel, I_tel, '-r', lw=1, alpha=0.5, label='Telluric')
     if model:
-        ax1.plot(w_mod, I_mod, '-g', lw=2, alpha=0.3, label='Model')
-    ax1.plot(w, I, '-k', lw=2, label='Star')
+        ax1.plot(w_mod, I_mod, '-g', lw=1, alpha=0.5, label='Model')
+    ax1.plot(w, I, '-w', lw=2, label='Star')
 
     # Add crosshair
     xlim = ax1.get_xlim()
@@ -436,40 +440,40 @@ def main(fname, lines=False, linelist=False,
             shift = (1.0 + rv1 / 299792.458)
             for line in lines:
                 ax1.vlines(line*shift, y0, y1, linewidth=2, color='m', alpha=0.5)
-                ax1.text(line*shift-0.7, 1.2, str(line), rotation=90)
+                ax1.text(line*shift-0.7, 1.2, str(line), rotation=90, color='w')
         else:
             for line in lines:
                 ax1.vlines(line, y0, y1, linewidth=2, color='m', alpha=0.5)
-                ax1.text(line-0.7, 1.2, str(line), rotation=90)
+                ax1.text(line-0.7, 1.2, str(line), rotation=90, color='w')
 
     ax1.set_xlabel('Wavelength')
     ax1.set_ylabel('"Normalized" flux')
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-k', lw=2)
+            ax2.plot(r_sun, c_sun, '-w', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-k', lw=2)
+            ax2.plot(r_mod, c_mod, '-w', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')
         if 'telluric' in rvs.keys():
-            ax2.plot(r_tel, c_tel, '-k', lw=2)
+            ax2.plot(r_tel, c_tel, '-w', lw=2)
             ax2.plot(x_tel, y_tel, '--r', lw=2)
             ax2.set_title('CCF (tel)')
         ax2.set_xlabel('RV [km/s]')
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-k', lw=2)
+            ax2.plot(r_sun, c_sun, '-w', lw=2)
             ax2.plot(x_sun, y_sun, '--r', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-k', lw=2)
+            ax2.plot(r_mod, c_mod, '-w', lw=2)
             ax2.plot(x_mod, y_mod, '--r', lw=2)
             ax2.set_title('CCF (mod)')
-        ax3.plot(r_tel, c_tel, '-k', lw=2)
+        ax3.plot(r_tel, c_tel, '-w', lw=2)
         ax3.plot(x_tel, y_tel, '--r', lw=2)
         ax3.set_title('CCF (tel)')
 

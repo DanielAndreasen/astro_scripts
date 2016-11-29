@@ -426,8 +426,9 @@ def main(fname, lines=False, linelist=False,
     if (linelist or lines) and lineidImport:
         try:
             lines, elements = np.loadtxt(linelist, usecols=(0, 1), skiprows=1, unpack=True)
-            lines = lines[(lines <= max(w)) & (lines >= min(w))]
-            elements = elements[(lines <= max(w)) & (lines >= min(w))]
+            idx = (lines <= max(w)) & (lines >= min(w))
+            lines = lines[idx]
+            elements = elements[idx]
             ele = {'26.0': 'FeI', '26.1': 'FeII'}
             annotation = ['{}: {}'.format(ele[str(element)], line) for element, line in zip(elements, lines)]
             pk = lineid_plot.initial_plot_kwargs()

@@ -436,9 +436,9 @@ def main(fname, lines=False, linelist=False,
             pass
         if rv1:
             shift = (1.0 + rv1 / 299792.458)
-            lineid_plot.plot_line_ids(w, I, lines*shift, annotation, ax=ax1, plot_kwargs=pk)
+            lineid_plot.plot_line_ids(w, I, lines*shift, annotation, ax=ax1, plot_kwargs=pk, add_label_to_artists=False)
         else:
-            lineid_plot.plot_line_ids(w, I, lines, annotation, ax=ax1, plot_kwargs=pk)
+            lineid_plot.plot_line_ids(w, I, lines, annotation, ax=ax1, plot_kwargs=pk, add_label_to_artists=False)
 
     ax1.set_ylim(min(I)-0.05*min(I), 1.05*max(I))
     ax1.set_xlabel('Wavelength')

@@ -429,16 +429,24 @@ def main(fname, lines=False, linelist=False,
             idx = (lines <= max(w)) & (lines >= min(w))
             lines = lines[idx]
             elements = elements[idx]
-            ele = {'26.0': 'FeI', '26.1': 'FeII'}
-            annotation = ['{}: {}'.format(ele[str(element)], line) for element, line in zip(elements, lines)]
-            pk = lineid_plot.initial_plot_kwargs()
+            Fe1Lines, Fe2Lines, otherLines = [], [], []
+            for line, element in zip(lines, elements):
+                if np.allclose(element, 26.0):
+                    Fe1Lines.append('FeI: {}'.format(line))
+                elif np.allclose(element, 26.1):
+                    Fe2Lines.append('FeII: {}'.format(line))
+                else:
+                    otherLines.append('{}: {}'.format(element, line))
+
+            lines = lines*(1.0 + rv1 / 299792.458) if rv1 else lines*1
+            if len(Fe1Lines):
+                lineid_plot.plot_line_ids(w, I, lines[elements==26.0], Fe1Lines, ax=ax1, add_label_to_artists=False)
+            if len(Fe2Lines):
+                pk = lineid_plot.initial_plot_kwargs()
+                pk['color'] = 'red'
+                lineid_plot.plot_line_ids(w, I, lines[elements==26.1], Fe2Lines, ax=ax1, add_label_to_artists=False, plot_kwargs=pk)
         except IOError:
             pass
-        if rv1:
-            shift = (1.0 + rv1 / 299792.458)
-            lineid_plot.plot_line_ids(w, I, lines*shift, annotation, ax=ax1, plot_kwargs=pk, add_label_to_artists=False)
-        else:
-            lineid_plot.plot_line_ids(w, I, lines, annotation, ax=ax1, plot_kwargs=pk, add_label_to_artists=False)
 
     ax1.set_ylim(min(I)-0.05*min(I), 1.05*max(I))
     ax1.set_xlabel('Wavelength')

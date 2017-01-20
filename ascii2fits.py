@@ -32,6 +32,8 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True, vac=None):
       a fits extension.
     dA : float (default: 0.01)
       The wavelength step in Angstrom.
+    unit : str (default: a)
+      The unit to convert from to Angstrom.
     read : bool (default: True)
       If True, the data will be read from file, fname. If False, fname
       should contain the wavelength and flux vector
@@ -58,6 +60,8 @@ def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True, vac=None):
         ll = 10E7/ll
         ll = ll[::-1]
         flux = flux[::-1]
+    elif unit == 'mm':  # micro meters
+        ll *= 10000
 
     if vac:
         ll = vac2air(ll)
@@ -91,7 +95,7 @@ def _parser():
                         type=float)
     parser.add_argument('-u', '--unit',
                         help='Unit of wavelength vector (default: AA)',
-                        default='a', choices=['aa', 'nm', 'cm'])
+                        default='a', choices=['aa', 'nm', 'cm', 'mm'])
     parser.add_argument('-v', '--vacuum', action='store_true', default=False,
                         help='If input spectrum is in vacuum, convert to air wavelengths')
     args = parser.parse_args()

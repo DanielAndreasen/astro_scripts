@@ -101,7 +101,7 @@ def _fit_ccf(rv, ccf):
     from astropy.modeling import models, fitting
     ampl = 1
     mean = rv[ccf == ampl]
-    I = np.where(ccf == ampl)[0]
+    I = np.where(ccf == ampl)[0][0]
 
     g_init = models.Gaussian1D(amplitude=ampl, mean=mean, stddev=5)
     fit_g = fitting.LevMarLSQFitter()
@@ -110,7 +110,7 @@ def _fit_ccf(rv, ccf):
         g = fit_g(g_init, rv[I - 10:I + 10], ccf[I - 10:I + 10])
     except TypeError:
         print('Warning: Not able to fit a gaussian to the CCF')
-        return 0, g_init
+        return mean, g_init
     RV = g.mean.value
     return RV, g
 
@@ -136,18 +136,28 @@ def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
     return flux, wlprime
 
 
-def get_wavelength(hdr):
+def get_wavelength(hdr, convert=False):
     """Return the wavelength vector calculated from the header of a FITS
     file.
 
-    :hdr: Header from a FITS ('CRVAL1', 'CDELT1', and 'NAXIS1' is required as
-            keywords)
-    :returns: Equidistant wavelength vector
+    Input
+    -----
+    hdr : FITS header
+      Header from a FITS ('CRVAL1', 'CDELT1', and 'NAXIS1' is required as keywords)
+    convert : bool
+      If True, multiple the wavelength vector with 10 (nm -> AA)
 
+    Output
+    ------
+    w : ndarray
+      Equidistant wavelength vector
     """
     w0, dw, n = hdr['CRVAL1'], hdr['CDELT1'], hdr['NAXIS1']
     w1 = w0 + dw * n
-    return np.linspace(w0, w1, n, endpoint=False)
+    w = np.linspace(w0, w1, n, endpoint=False)
+    if convert:
+        w *= 10
+    return w
 
 
 def _parser():
@@ -201,13 +211,15 @@ def _parser():
                         choices=map(str, range(1, 5)), default='1', metavar='FITS extention')
     parser.add_argument('--order', help='Select which GIANO order to be investigated',
                         choices=map(str, range(32, 81)), default='77', metavar='GIANO order')
+        parser.add_argument('--convert', help='Convert wavelength from nm to AA',
+                            action='store_true')
     return parser.parse_args()
 
 
 def main(fname, lines=False, linelist=False,
          model=False, telluric=False, sun=False,
          rv=False, rv1=False, rv2=False, ccf='none', ftype='1D',
-         fitsext='0', order='77'):
+         fitsext='0', order='77', convert=False):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -251,7 +263,7 @@ def main(fname, lines=False, linelist=False,
     if ftype == '1D':
         I = fits.getdata(fname)
         hdr = fits.getheader(fname)
-        w = get_wavelength(hdr)
+        w = get_wavelength(hdr, convert=convert)
     elif ftype == 'CRIRES':
         d = fits.getdata(fname, fitsext)
         hdr = fits.getheader(fname, fitsext)
@@ -402,8 +414,8 @@ def main(fname, lines=False, linelist=False,
         ax1 = fig.add_subplot(111)
 
     # Start in pan mode with these two lines
-    manager = plt.get_current_fig_manager()
-    manager.toolbar.pan()
+    # manager = plt.get_current_fig_manager()
+    # manager.toolbar.pan()
 
     # Use nice numbers on x axis (y axis is normalized)...
     x_formatter = matplotlib.ticker.ScalarFormatter(useOffset=False)

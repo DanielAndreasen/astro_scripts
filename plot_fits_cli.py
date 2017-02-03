@@ -211,8 +211,8 @@ def _parser():
                         choices=map(str, range(1, 5)), default='1', metavar='FITS extention')
     parser.add_argument('--order', help='Select which GIANO order to be investigated',
                         choices=map(str, range(32, 81)), default='77', metavar='GIANO order')
-        parser.add_argument('--convert', help='Convert wavelength from nm to AA',
-                            action='store_true')
+    parser.add_argument('--convert', help='Convert wavelength from nm to AA',
+                        action='store_true')
     return parser.parse_args()
 
 

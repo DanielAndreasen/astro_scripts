@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
 import scipy.interpolate as sci
+from PyAstronomy import pyasl
 try:
     import lineid_plot
     lineidImport = True
@@ -222,13 +223,15 @@ def _parser():
                         choices=map(str, range(32, 81)), default='77', metavar='GIANO order')
     parser.add_argument('--convert', help='Convert wavelength from nm to AA',
                         action='store_true')
+    parser.add_argument('--resolution', help='Instrumental resolution, used to broaden model atmosphere.',
+                        default=False, type=int)
     return parser.parse_args()
 
 
 def main(fname, lines=False, linelist=False,
          model=False, telluric=False, sun=False,
          rv=False, rv1=False, rv2=False, ccf='none', ftype='1D',
-         fitsext='0', order='77', convert=False):
+         fitsext='0', order='77', convert=False, resolution=False):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -336,6 +339,8 @@ def main(fname, lines=False, linelist=False,
         w_mod = w_mod[i]
         I_mod = I_mod[i]
         if len(w_mod) > 0:
+            if resolution:
+                I_mod = pyasl.instrBroadGaussFast(w_mod, I_mod, resolution, edgeHandling="firstlast", fullout=False, maxsig=None)
             # https://phoenix.ens-lyon.fr/Grids/FORMAT
             # I_mod = 10 ** (I_mod-8.0)
             I_mod /= np.median(I_mod)

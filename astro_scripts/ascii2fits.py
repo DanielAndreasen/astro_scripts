@@ -102,8 +102,12 @@ def _parser():
     return args
 
 
-if __name__ == '__main__':
+def main():
     args = _parser()
 
     convert2fits(args.input, fout=args.output, dA=args.delta,
                  unit=args.unit, vac=args.vacuum)
+
+
+if __name__ == '__main__':
+    main()

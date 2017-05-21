@@ -200,10 +200,14 @@ def main(fname, model, ftype='1D'):
     print('RV for {0} is {1}km/s'.format(fname.replace('.fits', ''), round(rvs['model'], 2)))
     return rv1, r_mod, c_mod, x_mod, y_mod
 
-if __name__ == '__main__':
+
+def runner():
     args = vars(_parser())
     fname = args.pop('fname')
     model = args.pop('model')
     ftype = args.pop('ftype')
-
     main(fname, model, ftype)
+
+
+if __name__ == '__main__':
+    runner()

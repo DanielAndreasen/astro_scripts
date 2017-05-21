@@ -525,9 +525,13 @@ def main(fname, lines=False, linelist=False,
     return rvs
 
 
-if __name__ == '__main__':
+def runner():
     args = vars(_parser())
     fname = args.pop('fname')
     opts = {k: args[k] for k in args}
 
     main(fname, **opts)
+
+
+if __name__ == '__main__':
+    runner()

@@ -15,7 +15,7 @@ def _parser():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     args = _parser()
 
     if args.key:
@@ -32,3 +32,7 @@ if __name__ == '__main__':
         h = fits.getheader(args.input[0])
         string = '\n'.join("{!s} : {!r}".format(key, val) for (key, val) in h.items())
         pager(string)
+
+
+if __name__ == '__main__':
+    main()

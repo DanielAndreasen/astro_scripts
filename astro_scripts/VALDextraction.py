@@ -85,10 +85,14 @@ def _parser():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     args = _parser()
 
     if args.wavelength:
         VALDmail(wavelength=args.wavelength, step=args.step)
     elif args.list:
         VALDmail(step=args.step, wavelengths=args.list)
+
+
+if __name__ == '__main__':
+    main()

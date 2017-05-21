@@ -42,7 +42,11 @@ def main(input, output=False):
         fo.write(fout)
 
 
-if __name__ == '__main__':
+def runner():
     args = _parser()
     input, output = args.input, args.output
     main(input, output)
+
+
+if __name__ == '__main__':
+    runner()

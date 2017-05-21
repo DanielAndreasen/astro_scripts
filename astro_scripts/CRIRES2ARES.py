@@ -72,10 +72,14 @@ def main(fname, output=False, unit=1, clobber=True):
     print('File writed to: %s' % output)
 
 
-if __name__ == '__main__':
+def runner():
     args = _parser()
     if args.unit == 'angstrom':
         args.unit = 1
     elif args.unit == 'nm':
         args.unit = 2
     main(args.fname, output=args.output, unit=args.unit, clobber=args.clobber)
+
+
+if __name__ == '__main__':
+    runner()

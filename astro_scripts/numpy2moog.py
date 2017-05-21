@@ -172,7 +172,7 @@ def _parser():
     return args
 
 
-if __name__ == '__main__':
+def runner():
     args = _parser()
 
     # Always add a .moog to the output if none extension is provided.
@@ -184,3 +184,7 @@ if __name__ == '__main__':
 
     if args.mode == 'asc':
         vald2numpy(args.input, args.output)
+
+
+if __name__ == '__main__':
+    runner()

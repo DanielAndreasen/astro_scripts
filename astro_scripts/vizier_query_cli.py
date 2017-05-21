@@ -104,10 +104,14 @@ def vizier_query(object, params=True, method='both', coordinate=False):
     return parameters, cat
 
 
-if __name__ == '__main__':
+def main():
     args = _parser()
     stars = args.object[0].split(' ')
     if len(stars) == 1:
         stars = args.object[0].split(',')
     for star in stars:
         vizier_query(star, params=args.params, method=args.method, coordinate=args.coordinate)
+
+
+if __name__ == '__main__':
+    main()

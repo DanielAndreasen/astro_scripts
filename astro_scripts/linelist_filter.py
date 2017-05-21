@@ -49,7 +49,7 @@ def _parser():
     return args
 
 
-if __name__ == '__main__':
+def main():
     args = _parser()
 
     fname = args.input
@@ -73,3 +73,7 @@ if __name__ == '__main__':
                comments='')
     except:
         np.savetxt(output, data)
+
+
+if __name__ == '__main__':
+    main()

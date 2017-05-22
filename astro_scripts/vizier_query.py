@@ -9,7 +9,7 @@ try:
 except ImportError:
     url = 'https://astroquery.readthedocs.org/'
     raise ImportError('astroquery is needed (pip). More info here: %s' % url)
-from gooey import Gooey, GooeyParser
+import argparse
 import warnings
 
 
@@ -25,9 +25,8 @@ def _q2a(lst):
     return np.array(lst_new)
 
 
-@Gooey()
 def _parser():
-    parser = GooeyParser(description='Look up an object in VizieR'
+    parser = argparse.ArgumentParser(description='Look up an object in VizieR'
                                                  ' and print mean/median'
                                                  ' values of given parameters')
     parser.add_argument('object', help='Object, e.g. HD20010', nargs='+')

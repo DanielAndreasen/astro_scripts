@@ -134,7 +134,6 @@ setup(
             'rv_measure=astro_scripts:rv_measure',
             'VALDextraction=astro_scripts:VALDextraction',
             'VALDprepare=astro_scripts:VALDprepare',
-            'vizier_query_cli=astro_scripts:vizier_query_cli',
             'vizier_query=astro_scripts:vizier_query',
         ],
     },

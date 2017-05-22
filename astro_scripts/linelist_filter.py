@@ -4,7 +4,7 @@
 # My imports
 from __future__ import division, print_function
 import numpy as np
-from gooey import Gooey, GooeyParser
+import argparse
 
 
 def ll_filter(fname, col, limit, sign, element):
@@ -21,11 +21,10 @@ def ll_filter(fname, col, limit, sign, element):
     return data[:, i].T
 
 
-@Gooey(default_size=(610, 710))
 def _parser():
-    parser = GooeyParser(description='Filter the linelist by a'
-                                     ' column and an upper limit')
-    parser.add_argument('input', help='Input linelist', widget='FileChooser')
+    parser = argparse.ArgumentParser(description='Filter the linelist by a column and an upper limit')
+    parser.add_argument('input',
+                        help='Input linelist')
     parser.add_argument('col',
                         help='Column to be sorted (starting at 0)',
                         type=int)

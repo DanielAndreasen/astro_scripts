@@ -10,17 +10,13 @@ import matplotlib
 from astropy.io import fits
 import scipy.interpolate as sci
 from PyAstronomy import pyasl
+import argparse
 try:
     import lineid_plot
     lineidImport = True
 except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
-
-try:
-    from gooey import Gooey, GooeyParser
-except ImportError:
-    raise Error('Please install Gooey: pip install gooey')
 
 
 def _download_spec(fout):
@@ -165,26 +161,21 @@ def get_wavelength(hdr, convert=False):
     return w
 
 
-@Gooey(program_name='Plot fits - Easy spectra plotting', default_size=(610, 830))
 def _parser():
     """Take care of all the CLI/GUI stuff.
     """
-    parser = GooeyParser(description='Plot FITS spectra effortless')
+    parser = argparse.ArgumentParser(description='Plot FITS spectra effortless')
     parser.add_argument('fname',
                         action='store',
-                        widget='FileChooser',
                         help='Input fits file', metavar='Fits file')
     parser.add_argument('-m', '--model',
                         default=False,
-                        widget='FileChooser',
                         help='If not the Sun shoul be used as a model, put'
                         ' the model here (only support BT-Settl for the'
                         ' moment)', metavar='Model atmosphere')
     path_lines = os.path.join(os.path.expanduser('~/.plotfits/'), 'linelist.moog')
     parser.add_argument('--linelist',
-                        # default=False,
                         default=path_lines,
-                        widget='FileChooser',
                         help='Linelist with 1 line header and wavelength in 1st col', metavar='Line list')
 
     parser.add_argument('-s', '--sun',
@@ -534,9 +525,13 @@ def main(fname, lines=False, linelist=False,
     return rvs
 
 
-if __name__ == '__main__':
+def runner():
     args = vars(_parser())
     fname = args.pop('fname')
     opts = {k: args[k] for k in args}
 
     main(fname, **opts)
+
+
+if __name__ == '__main__':
+    runner()

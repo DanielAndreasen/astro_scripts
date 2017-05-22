@@ -6,15 +6,13 @@ from __future__ import division, print_function
 import numpy as np
 from astropy.io import fits
 import argparse
-from gooey import Gooey, GooeyParser
 
 
-@Gooey(program_name='CRIRES spectrum to an 1D spectrum', default_size=(610, 500))
 def _parser():
     '''The argparse stuff'''
 
-    parser = GooeyParser(description='CRIRES spectrum to an 1D spectrum')
-    parser.add_argument('fname', action='store', widget='FileChooser', help='Input fits file')
+    parser = argparse.ArgumentParser(description='CRIRES spectrum to an 1D spectrum')
+    parser.add_argument('fname', help='Input fits file')
     parser.add_argument('--output', default=False,
                         help='Output to this name. If nothing is given, output will be: "wmin-wmax.fits"')
     parser.add_argument('-u', '--unit', default='angstrom',

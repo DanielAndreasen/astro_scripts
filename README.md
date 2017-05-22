@@ -1,9 +1,11 @@
-# NEW
-Try install many of the scripts with 
+# Install
+Try install many of the scripts with
 
     pip install astro-scripts
 
 This is still under development though, but it does work!
+
+To check the installation run `plot_fits` in the terminal.
 
 
 # WARNING

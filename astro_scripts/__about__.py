@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # Licensed under the MIT Licence
 
-# About spectrum_overload
-# Based off of the warehouse project (pip's replacement)
 
 import os.path
 
@@ -21,11 +19,10 @@ except NameError:
 
 __title__ = "astro_scripts"
 __summary__ = "Small scripts for astronomy"
-# __uri__ = "https://pypi.org/"
-__uri__ = None
+__uri__ = "https://pypi.python.org/pypi/astro-scripts/"
 
 # The version as used in the setup.py and the docs conf.py
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 if base_dir is not None and os.path.exists(os.path.join(base_dir, ".commit")):
     with open(os.path.join(base_dir, ".commit")) as fp:

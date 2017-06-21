@@ -135,6 +135,7 @@ setup(
             'VALDextraction=astro_scripts:VALDextraction',
             'VALDprepare=astro_scripts:VALDprepare',
             'vizier_query=astro_scripts:vizier_query',
+            'SWEETCat=astro_scripts:SWEETCat',
         ],
     },
 )

@@ -8,3 +8,4 @@ from astro_scripts.rv_measure import runner as rv_measure
 from astro_scripts.VALDextraction import main as VALDextraction
 from astro_scripts.VALDprepare import runner as VALDprepare
 from astro_scripts.vizier_query import main as vizier_query
+from astro_scripts.SWEETCat import main as SWEETCat

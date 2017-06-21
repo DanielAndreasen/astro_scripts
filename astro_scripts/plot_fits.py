@@ -18,6 +18,13 @@ except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
 
+plt.rcParams['xtick.direction'] = 'in'
+plt.rcParams['ytick.direction'] = 'in'
+plt.rcParams['axes.spines.right'] = False
+plt.rcParams['axes.spines.top'] = False
+plt.rcParams['axes.linewidth'] = 2
+plt.rcParams['xtick.major.width'] = 2
+plt.rcParams['ytick.major.width'] = 2
 
 def _download_spec(fout):
     """
@@ -216,13 +223,16 @@ def _parser():
                         action='store_true')
     parser.add_argument('--resolution', help='Instrumental resolution, used to broaden model atmosphere.',
                         default=False, type=int)
+    parser.add_argument('--nolines', help='Remove lines from the line list',
+                        default=False, action='store_true')
     return parser.parse_args()
 
 
 def main(fname, lines=False, linelist=False,
          model=False, telluric=False, sun=False,
          rv=False, rv1=False, rv2=False, ccf='none', ftype='1D',
-         fitsext='0', order='77', convert=False, resolution=False):
+         fitsext='0', order='77', convert=False, resolution=False,
+         nolines=False):
     """Plot a fits file with extensive options
 
     :fname: Input spectra
@@ -440,7 +450,7 @@ def main(fname, lines=False, linelist=False,
     plt.connect('motion_notify_event', cursor.mouse_move)
     ax1.set_xlim(xlim)
 
-    if (linelist or lines) and lineidImport:
+    if (linelist or lines) and lineidImport and not nolines:
         try:
             lines, elements = np.loadtxt(linelist, usecols=(0, 1), skiprows=1, unpack=True)
             idx = (lines <= max(w)) & (lines >= min(w))

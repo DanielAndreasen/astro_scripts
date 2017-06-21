@@ -22,7 +22,7 @@ __summary__ = "Small scripts for astronomy"
 __uri__ = "https://pypi.python.org/pypi/astro-scripts/"
 
 # The version as used in the setup.py and the docs conf.py
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 if base_dir is not None and os.path.exists(os.path.join(base_dir, ".commit")):
     with open(os.path.join(base_dir, ".commit")) as fp:

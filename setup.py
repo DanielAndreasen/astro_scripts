@@ -18,7 +18,7 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(os.path.join(here, 'README.rst')) as f:
+with open(os.path.join(here, 'README.md')) as f:
    long_description = f.read()
 
 base_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)))

@@ -23,7 +23,7 @@ def _parser():
     parser = argparse.ArgumentParser(description='Plot SWEET-Cat stuff')
     p = ['vmag', 'vmagerr', 'par', 'parerr', 'teff', 'tefferr', 'logg',
          'loggerr', 'logglc', 'logglcerr', 'vt', 'vterr', 'feh', 'feherr',
-         'mass', 'masserr', 'lum', 'radius', 'radiuserr', 'age']
+         'mass', 'masserr', 'lum', 'age']
     parser.add_argument('x', help='Plot this data one first axis', choices=p)
     parser.add_argument('y', help='Plot this data one second axis', choices=p)
     parser.add_argument('-z', help='Color scale', choices=p, default=None)
@@ -113,20 +113,26 @@ def main():
         plt.scatter(df['x'], df['y'], s=40)
 
 
-    labels = {'teff': r'$T_\mathrm{eff}$ [K]',
-              'tefferr': r'$\sigma T_\mathrm{eff}$ [K]',
-              'logg': r'$\log(g)$ [cgs]',
-              'loggerr': r'$\sigma \log(g)$ [cgs]',
-              'feh': '[Fe/H]',
-              'feherr': r'$\sigma$ [Fe/H]',
-              'vt': r'$\xi_\mathrm{micro}$ [km/s]',
-              'vterr': r'$\sigma\xi_\mathrm{micro}$ [km/s]',
-              'lum': r'$L_\odot$',
-              'mass': r'$M_\odot$',
-              'masserr': r'$\sigma M_\odot$',
-              'radius': r'$R_\odot$',
+    labels = {'teff':      r'$T_\mathrm{eff}$ [K]',
+              'tefferr':   r'$\sigma T_\mathrm{eff}$ [K]',
+              'logg':      r'$\log(g)$ [cgs]',
+              'loggerr':   r'$\sigma \log(g)$ [cgs]',
+              'logglc':    r'$\log(g)$ [cgs]',
+              'logglcerr': r'$\sigma \log(g)$ [cgs]',
+              'feh':        '[Fe/H]',
+              'feherr':    r'$\sigma$ [Fe/H]',
+              'vt':        r'$\xi_\mathrm{micro}$ [km/s]',
+              'vterr':     r'$\sigma\xi_\mathrm{micro}$ [km/s]',
+              'lum':       r'$L_\odot$',
+              'mass':      r'$M_\odot$',
+              'masserr':   r'$\sigma M_\odot$',
+              'radius':    r'$R_\odot$',
               'radiuserr': r'$\sigma R_\odot$',
-              'age': r'Age $[Gyr]$'}
+              'age':       r'Age $[Gyr]$',
+              'par':       r'$\pi$ [mas]',
+              'parerr':    r'$\sigma \pi$ [mas]',
+              'vmag':       'V magnitude',
+              'vmagerr':   r'$\sigma$ V magnitude'}
 
     plt.xlabel(labels[args.x])
     plt.ylabel(labels[args.y])

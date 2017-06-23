@@ -47,8 +47,8 @@ class Cursor:
 
     def __init__(self, ax):
         self._ax = ax
-        self.lx = ax.axhline(color='b', lw=2, alpha=0.7)
-        self.ly = ax.axvline(color='b', lw=2, alpha=0.7)
+        self.lx = ax.axhline(color='C0', lw=2, alpha=0.7)
+        self.ly = ax.axvline(color='C0', lw=2, alpha=0.7)
 
     def mouse_move(self, event):
         if not event.inaxes:
@@ -437,11 +437,11 @@ def main(fname, lines=False, linelist=False,
     ax1.xaxis.set_major_formatter(x_formatter)
 
     if sun and not model:
-        ax1.plot(w_sun, I_sun, '-g', lw=1, alpha=0.6, label='Sun')
+        ax1.plot(w_sun, I_sun, '-C2', lw=1, alpha=0.6, label='Sun')
     if telluric:
-        ax1.plot(w_tel, I_tel, '-r', lw=1, alpha=0.5, label='Telluric')
+        ax1.plot(w_tel, I_tel, '-C3', lw=1, alpha=0.6, label='Telluric')
     if model:
-        ax1.plot(w_mod, I_mod, '-g', lw=1, alpha=0.5, label='Model')
+        ax1.plot(w_mod, I_mod, '-C2', lw=1, alpha=0.6, label='Model')
     ax1.plot(w, I, '-k', lw=1, label='Star')
 
     # Add crosshair
@@ -481,30 +481,30 @@ def main(fname, lines=False, linelist=False,
 
     if len(rvs) == 1:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-k', lw=2)
-            ax2.plot(x_sun, y_sun, '--r', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', alpha=0.9, lw=2)
+            ax2.plot(x_sun, y_sun, '--C1', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-k', lw=2)
-            ax2.plot(x_mod, y_mod, '--r', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', alpha=0.9, lw=2)
+            ax2.plot(x_mod, y_mod, '--C1', lw=2)
             ax2.set_title('CCF (mod)')
         if 'telluric' in rvs.keys():
-            ax2.plot(r_tel, c_tel, '-k', lw=2)
-            ax2.plot(x_tel, y_tel, '--r', lw=2)
+            ax2.plot(r_tel, c_tel, '-k', alpha=0.9, lw=2)
+            ax2.plot(x_tel, y_tel, '--C1', lw=2)
             ax2.set_title('CCF (tel)')
         ax2.set_xlabel('RV [km/s]')
 
     elif len(rvs) == 2:
         if 'sun' in rvs.keys():
-            ax2.plot(r_sun, c_sun, '-k', lw=2)
-            ax2.plot(x_sun, y_sun, '--r', lw=2)
+            ax2.plot(r_sun, c_sun, '-k', alpha=0.9, lw=2)
+            ax2.plot(x_sun, y_sun, '--C1', lw=2)
             ax2.set_title('CCF (sun)')
         if 'model' in rvs.keys():
-            ax2.plot(r_mod, c_mod, '-k', lw=2)
-            ax2.plot(x_mod, y_mod, '--r', lw=2)
+            ax2.plot(r_mod, c_mod, '-k', alpha=0.9, lw=2)
+            ax2.plot(x_mod, y_mod, '--C1', lw=2)
             ax2.set_title('CCF (mod)')
-        ax3.plot(r_tel, c_tel, '-k', lw=2)
-        ax3.plot(x_tel, y_tel, '--r', lw=2)
+        ax3.plot(r_tel, c_tel, '-k', alpha=0.9, lw=2)
+        ax3.plot(x_tel, y_tel, '--C1', lw=2)
         ax3.set_title('CCF (tel)')
 
         ax2.set_xlabel('RV [km/s]')

@@ -7,6 +7,28 @@ import argparse
 import os
 
 
+def send_email(wavelength, step):
+    """
+    Prepare and send the email
+    """
+    line_interval = '%s, %s\n' % (wavelength - step, wavelength + step)
+    request = request_header
+    request += line_interval
+    request += request_bottom
+
+    cmd = 'thunderbird -compose "to=vald3@vald.astro.univie.ac.at,'
+    cmd += 'subject=VALD-EMS request: ' + str(wavelength) + ','
+    cmd += 'preselectid=id2,'
+    cmd += 'body=\'$(cat tmp.mail)\'"'
+
+    with open('tmp.mail', 'wb') as f:
+        f.write(request)
+
+    os.system(cmd)
+    raw_input('\nPress RETURN to continue: ')
+    os.remove('rm -f tmp.mail')
+
+
 def VALDmail(wavelength=1000, step=1, wavelengths=None):
     """
     Create the mail to be send to VALD3 to extract all. This script make use of
@@ -24,59 +46,23 @@ def VALDmail(wavelength=1000, step=1, wavelengths=None):
     request_header += 'default configuration\nshort format\n'
     request_bottom = 'end request\n'
 
-    dw = step
     if wavelengths:
         assert hasattr(wavelengths,
                        '__iter__'), '%s is not iterable' % wavelengths
 
         for wavelength in wavelengths:
-            line_interval = '%s, %s\n' % (wavelength - step, wavelength + step)
-            request = request_header
-            request += line_interval
-            request += request_bottom
-
-            cmd = 'thunderbird -compose "to=vald3@vald.astro.univie.ac.at,'
-            cmd += 'subject=VALD-EMS request: ' + str(line) + ','
-            cmd += 'preselectid=id2,'
-            cmd += 'body=\'$(cat tmp.mail)\'"'
-
-            with open('tmp.mail', 'wb') as f:
-                f.write(request)
-
-            os.system(cmd)
-            os.system('clear')
-            raw_input('\nPress RETURN to continue: ')
-            os.system('rm -f tmp.mail')
+            send_email(wavelength, step)
     else:
-        line_interval = '%s, %s\n' % (wavelength - step, wavelength + step)
-        request = request_header
-        request += line_interval
-        request += request_bottom
-
-        cmd = 'thunderbird -compose "to=vald3@vald.astro.univie.ac.at,'
-        cmd += 'subject=VALD-EMS request: ' + str(wavelength) + ','
-        cmd += 'preselectid=id2,'
-        cmd += 'body=\'$(cat tmp.mail)\'"'
-
-        with open('tmp.mail', 'wb') as f:
-            f.write(request)
-
-        os.system(cmd)
-        os.system('clear')
-        os.system('rm -f tmp.mail')
+        send_email(wavelength, step)
 
 
 def _parser():
     parser = argparse.ArgumentParser(description='Prepare emails with'
                                      'Thunderbird for VALD.')
     parser.add_argument('-w', '--wavelength',
-                        help='The central wavelength',
-                        type=float)
-    parser.add_argument('-l', '--list',
-                        required=False,
+                        help='The central wavelength(s)',
                         nargs='+',
-                        type=float,
-                        help='A list of wavelengths to be itereated over')
+                        type=float)
     parser.add_argument('-s', '--step',
                         default=1,
                         type=float,
@@ -87,11 +73,7 @@ def _parser():
 
 def main():
     args = _parser()
-
-    if args.wavelength:
-        VALDmail(wavelength=args.wavelength, step=args.step)
-    elif args.list:
-        VALDmail(step=args.step, wavelengths=args.list)
+    VALDmail(wavelength=args.wavelength, step=args.step)
 
 
 if __name__ == '__main__':

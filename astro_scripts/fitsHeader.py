@@ -24,9 +24,9 @@ def main():
             h = fits.getheader(fname)
             h.keys = map(str.lower, h.keys())
             try:
-                print '%s:  %s' % (fname, h[args.key])
+                print('{}:  {}'.format(fname, h[args.key]))
             except KeyError:
-                print 'Key was not found in: %s' % fname
+                print('Key was not found in: {}'.format(fname))
     else:
         h = fits.getheader(args.input[0])
         string = '\n'.join("{!s} : {!r}".format(key, val) for (key, val) in h.items())

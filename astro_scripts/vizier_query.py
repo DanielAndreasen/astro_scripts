@@ -79,6 +79,7 @@ def vizier_query(obj, params=True, method='both', coordinate=False):
                 try:
                     parameters[column].append(ci[column].quantity)
                 except (TypeError, KeyError):
+                    pass
 
         for key in parameters.keys():
             pi = parameters[key]

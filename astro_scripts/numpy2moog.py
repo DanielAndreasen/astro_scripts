@@ -39,12 +39,12 @@ def numpy2moog_ew(arr, output=None, header=None):
             print('Need to specify an output')
             raise SystemExit
     else:
-        print('Unexpected datatype: %s' % type(arr))
+        print('Unexpected datatype: {}'.format(type(arr)))
         raise SystemExit
 
     fmt_ = ('%9.2f', '%7.1f', '%11.2f', '%10.3f', '%27.1f')
     np.savetxt(output, data, fmt=fmt_, header=header)
-    print('Output file: %s' % output)
+    print('Output file: {}'.format(output))
 
 
 def numpy2moog_synth(arr, output=None, header=None):
@@ -88,9 +88,9 @@ def vald2numpy(input, output=None):
     if not output:  # Call the output file for .moog
         tmp = input.rpartition('.')
         if tmp[0]:
-            output = '%s.npy' % tmp[0]
+            output = '{}.npy'.format(tmp[0])
         else:
-            output = '%s.npy' % input
+            output = '{}.npy'.format(input)
 
     with open(input, 'r') as lines:
         newFile = ''
@@ -122,7 +122,7 @@ def vald2numpy(input, output=None):
         iso = e[-1]
         e = e[:-1].strip(' ')
         if e in mol.keys():
-            ele_moog = '%s.%s' % (mol[e][0], str(int(iso) - 1))
+            ele_moog = '{}.{}'.format((mol[e][0], str(int(iso) - 1)))
             l = str(l).ljust(6, '0')
             z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
         else:
@@ -133,14 +133,14 @@ def vald2numpy(input, output=None):
                 z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
             except AttributeError:
                 print('The following element does not exist in the dictionary'
-                      'yet: %s' % e)
+                      'yet: {}'.format(e))
                 raise
 
         numpy_out += z
 
     with open(output, 'w') as f:
         f.write(numpy_out)
-    print('Output file: %s' % output)
+    print('Output file: {}'.format(output))
 
 
 def _parser():

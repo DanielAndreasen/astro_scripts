@@ -17,7 +17,7 @@ try:
 except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
-from utils import ccf_astro, _fit_ccf, nrefrac, dopplerShift, get_wavelength
+from .utils import ccf_astro, _fit_ccf, nrefrac, dopplerShift, get_wavelength
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'

@@ -67,7 +67,7 @@ def main(fname, output=False, unit=1, clobber=True):
     hdr["CRVAL1"] = w[0]
 
     fits.writeto(output, I['Extracted_OPT'], header=hdr, clobber=clobber)
-    print('File writed to: %s' % output)
+    print('File writed to: {}'.format(output))
 
 
 def runner():

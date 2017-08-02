@@ -6,9 +6,8 @@ from __future__ import division, print_function
 import os
 import numpy as np
 from astropy.io import fits
-import scipy.interpolate as sci
 from argparse import ArgumentParser
-from .utils import ccf_astro, _fit_ccf, nrefrac, dopplerShift, get_wavelength
+from .utils import ccf_astro, nrefrac, dopplerShift, get_wavelength
 
 
 def _parser():

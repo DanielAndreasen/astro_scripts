@@ -1,7 +1,5 @@
 from __future__ import division, print_function
 import numpy as np
-from astropy.io import fits
-from PyAstronomy import pyasl
 import scipy.interpolate as sci
 
 
@@ -28,7 +26,6 @@ def ccf_astro(spectrum1, spectrum2, rvmin=0, rvmax=150, drv=1):
             fiw = fi(w)
             cc[i] = np.sum(f * fiw)
         except ValueError:
-            s = True
             fiw = 0
             cc[i] = 0
 

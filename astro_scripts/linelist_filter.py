@@ -70,7 +70,7 @@ def main():
                fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
                header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',
                comments='')
-    except:
+    except Exception as e:
         np.savetxt(output, data)
 
 

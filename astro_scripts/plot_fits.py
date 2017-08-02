@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from astropy.io import fits
-import scipy.interpolate as sci
 from PyAstronomy import pyasl
 import argparse
 try:
@@ -17,7 +16,7 @@ try:
 except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
-from .utils import ccf_astro, _fit_ccf, nrefrac, dopplerShift, get_wavelength
+from .utils import ccf_astro, nrefrac, dopplerShift, get_wavelength
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'

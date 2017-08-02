@@ -61,7 +61,6 @@ def vizier_query(obj, params=True, method='both', coordinate=False):
                 dec = c['DEJ2000'][0]
             except KeyError:
                 ra = 0
-                pass
             if ra != 0:
                 break
         print('\n\n%s %s %s' % (obj, ra, dec))

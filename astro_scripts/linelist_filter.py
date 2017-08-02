@@ -65,13 +65,10 @@ def main():
 
     data = ll_filter(fname, col, limit, sign, element)
     print('Result saved in {}'.format(output))
-    try:
-        np.savetxt(output, data,
-               fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
-               header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',
-               comments='')
-    except Exception as e:
-        np.savetxt(output, data)
+    np.savetxt(output, data,
+           fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
+           header='Wavelength\tEle\t  excit\t  log gf\t\t\t EW',
+           comments='')
 
 
 if __name__ == '__main__':

@@ -39,7 +39,7 @@ install:
 
 # command to run tests
 script:
-  - pytest --cov=. --cov-report term-missing --durations 5 -n 2
+  - pytest --cov=. --cov-report term-missing --durations 5
 
 after_success:
   # - coveralls -i

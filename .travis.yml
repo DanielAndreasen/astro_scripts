@@ -31,7 +31,7 @@ install:
   - python setup.py install
 
   # Testing requirements
-  - pip install pytest-cov python-coveralls codacy-coverage
+  - pip install pytest-cov codacy-coverage
 
   # Setup PyAstronomy folder
   # - echo -n $HOME/PyAData > $HOME/.pyaConfigWhere

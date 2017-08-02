@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/DanielAndreasen/astro_scripts.svg?branch=master)](https://travis-ci.org/DanielAndreasen/astro_scripts)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1e4c8c61a2e4420999e4ba60fb4886a7)](https://www.codacy.com/app/daniel.andreasen/astro_scripts?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DanielAndreasen/astro_scripts&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/1e4c8c61a2e4420999e4ba60fb4886a7)](https://www.codacy.com/app/daniel.andreasen/astro_scripts?utm_source=github.com&utm_medium=referral&utm_content=DanielAndreasen/astro_scripts&utm_campaign=Badge_Coverage)
 
 # Install
 Try install many of the scripts with

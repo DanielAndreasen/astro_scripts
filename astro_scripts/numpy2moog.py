@@ -75,7 +75,7 @@ def numpy2moog_synth(arr, output=None, header=None):
             f.write(line.rstrip() + '\n')
 
 
-def vald2numpy(input, output=None):
+def vald2numpy(inp, output=None):
     """Converts the VALD output to a numpy array with only the name,
     wavelength, excitation potential, and log gf
     """
@@ -86,11 +86,11 @@ def vald2numpy(input, output=None):
         raise ImportError('Could not import periodic\nInstall with: pip install periodic')
 
     if not output:  # Call the output file for .moog
-        tmp = input.rpartition('.')
+        tmp = inp.rpartition('.')
         if tmp[0]:
             output = '{}.npy'.format(tmp[0])
         else:
-            output = '{}.npy'.format(input)
+            output = '{}.npy'.format(inp)
 
     with open(input, 'r') as lines:
         newFile = ''
@@ -99,10 +99,10 @@ def vald2numpy(input, output=None):
                 pass
             else:
                 newFile += line
-    with open(input, 'w') as f:
+    with open(inp, 'w') as f:
         f.write(newFile)
 
-    f = np.loadtxt(input,
+    f = np.loadtxt(inp,
                    dtype={
                        'names': ('elements', 'w', 'excit', 'loggf'),
                        'formats': ('S4', 'f4', 'f4', 'f4')
@@ -122,7 +122,7 @@ def vald2numpy(input, output=None):
         iso = e[-1]
         e = e[:-1].strip(' ')
         if e in mol.keys():
-            ele_moog = '{}.{}'.format((mol[e][0], str(int(iso) - 1)))
+            ele_moog = '{}.{}'.format(mol[e][0], str(int(iso) - 1))
             l = str(l).ljust(6, '0')
             z = '\t'.join([w, ele_moog, str(ex), l, str(mol[e][1])]) + '\n'
         else:

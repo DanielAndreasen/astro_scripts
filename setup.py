@@ -12,23 +12,20 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
-from codecs import open
+from codecs import open as openc
 import os
+from astro_scripts.__about__ import __version__
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(os.path.join(here, 'README.rst')) as f:
+with openc(os.path.join(here, 'README.rst')) as f:
    long_description = f.read()
 
-base_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)))
-
-about = {}
-with open(os.path.join(base_dir, "astro_scripts", "__about__.py")) as f:
-    exec(f.read(), about)
+about = {'__version__': __version__}
 
 # https://www.reddit.com/r/Python/comments/3uzl2a/setuppy_requirementstxt_or_a_combination/
-with open('requirements.txt') as f:
+with openc('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(

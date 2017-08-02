@@ -27,7 +27,6 @@ def main():
                 print '%s:  %s' % (fname, h[args.key])
             except KeyError:
                 print 'Key was not found in: %s' % fname
-                pass
     else:
         h = fits.getheader(args.input[0])
         string = '\n'.join("{!s} : {!r}".format(key, val) for (key, val) in h.items())

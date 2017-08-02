@@ -17,22 +17,20 @@ def _parser():
     return parser.parse_args()
 
 
-def main(input, output=False):
+def main(inp, output=False):
 
-    if not os.path.isfile(input):
-        raise IOError('File: %s does not exists' % input)
+    if not os.path.isfile(inp):
+        raise IOError('File: {} does not exists'.format(inp))
 
-    fname = input.rpartition('.')[0]
+    fname = inp.rpartition('.')[0]
     if not output:
-        output = '%s.dat' % fname
-    oref = '%s.ref' % fname
+        output = '{}.dat'.format(fname)
 
     fout = ''
-    fref = ''
-    with gzip.open(input, 'r') as lines:
+    with gzip.open(inp, 'r') as lines:
         for i, line in enumerate(lines):
             if i < 2:
-                fout += '# %s' % line.replace("'", '')
+                fout += '# {}'.format(line.replace("'", ''))
             else:
                 fout += line.replace("'", '')
             if 'References' in line:
@@ -44,8 +42,8 @@ def main(input, output=False):
 
 def runner():
     args = _parser()
-    input, output = args.input, args.output
-    main(input, output)
+    inp, output = args.input, args.output
+    main(inp, output)
 
 
 if __name__ == '__main__':

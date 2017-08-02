@@ -39,11 +39,11 @@ def _parser():
     return parser.parse_args()
 
 
-def vizier_query(object, params=True, method='both', coordinate=False):
+def vizier_query(obj, params=True, method='both', coordinate=False):
     """Give mean/median values of some parameters for an object.
     This script use VizieR for looking up the object.
 
-    :object: The object to query (e.g. HD20010).
+    :obj: The object to query (e.g. HD20010).
     :parama: Extra parameters to look for (default is Teff, logg, __Fe_H_).
     :method: Print median, main or both
 
@@ -52,7 +52,7 @@ def vizier_query(object, params=True, method='both', coordinate=False):
 
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        cat = Vizier.query_object(object)
+        cat = Vizier.query_object(obj)
 
     if coordinate:
         for c in cat:
@@ -64,9 +64,9 @@ def vizier_query(object, params=True, method='both', coordinate=False):
                 pass
             if ra != 0:
                 break
-        print('\n\n%s %s %s' % (object, ra, dec))
+        print('\n\n%s %s %s' % (obj, ra, dec))
     else:
-        print('\n\nObject: %s' % object)
+        print('\n\nObject: %s' % obj)
 
     parameters = {'Teff': [], 'logg': [], '__Fe_H_': []}
     if params:
@@ -79,7 +79,6 @@ def vizier_query(object, params=True, method='both', coordinate=False):
                 try:
                     parameters[column].append(ci[column].quantity)
                 except (TypeError, KeyError):
-                    pass
 
         for key in parameters.keys():
             pi = parameters[key]

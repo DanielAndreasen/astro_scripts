@@ -22,16 +22,10 @@ def numpy2moog_ew(arr, output=None, header=None):
         header = 'Wavelength\tEle\t  excit\t  log gf\t\t\t EW'
 
     if isinstance(arr, str):
-        if not output:  # Call the output file for .moog
-            tmp = arr.rpartition('.')
-            if tmp[0]:
-                output = '%s.moog' % tmp[0]
-            else:
-                output = '%s.moog' % arr
         try:
             data = np.loadtxt(arr, skiprows=header.count('\n') + 1)
         except ValueError:
-            raise ValueError('Was not able to load %s' % arr)
+            raise ValueError('Was not able to load {}'.format(arr))
     elif isinstance(arr, list):
         data = np.array(arr, dtype=str)
         data = np.reshape(data, (1, 5))
@@ -55,12 +49,6 @@ def numpy2moog_synth(arr, output=None, header=None):
     import pandas as pd
     if not header:  # Default header
         header = 'Wavelength\t   Ele\t  excit\t  log gf\t   D0'
-    if not output:  # Call the output file for .moog
-        tmp = arr.rpartition('.')
-        if tmp[0]:
-            output = '%s.moog' % tmp[0]
-        else:
-            output = '%s.moog' % arr
 
     df = pd.read_csv(arr, sep='\s+')
 
@@ -75,7 +63,7 @@ def numpy2moog_synth(arr, output=None, header=None):
             f.write(line.rstrip() + '\n')
 
 
-def vald2numpy(inp, output=None):
+def vald2numpy(fname, output=None):
     """Converts the VALD output to a numpy array with only the name,
     wavelength, excitation potential, and log gf
     """
@@ -85,31 +73,22 @@ def vald2numpy(inp, output=None):
     except ImportError:
         raise ImportError('Could not import periodic\nInstall with: pip install periodic')
 
-    if not output:  # Call the output file for .moog
-        tmp = inp.rpartition('.')
-        if tmp[0]:
-            output = '{}.npy'.format(tmp[0])
-        else:
-            output = '{}.npy'.format(inp)
+    output = output.replace('.moog', '.npy')
 
-    with open(input, 'r') as lines:
+    with open(fname, 'r') as lines:
         newFile = ''
         for line in lines:
             if line.startswith('#') or line.startswith('*'):
                 pass
             else:
                 newFile += line
-    with open(inp, 'w') as f:
+    with open(fname, 'w') as f:
         f.write(newFile)
 
-    f = np.loadtxt(inp,
-                   dtype={
-                       'names': ('elements', 'w', 'excit', 'loggf'),
-                       'formats': ('S4', 'f4', 'f4', 'f4')
-                   },
-                   comments='#',
-                   delimiter=',',
-                   usecols=(0, 1, 2, 3))
+    f = np.loadtxt(fname,
+                   dtype={'names': ('elements', 'w', 'excit', 'loggf'),
+                          'formats': ('S4', 'f4', 'f4', 'f4')},
+                   comments='#', delimiter=',', usecols=(0, 1, 2, 3))
 
     mol1 = ['CH', 'OH', 'C2', 'CN', 'CO']
     mol2 = ['106', '108', '606', '607', '608']
@@ -132,9 +111,7 @@ def vald2numpy(inp, output=None):
                 l = str(l).ljust(6, '0')
                 z = '\t'.join([w, ele_moog, str(ex), l]) + '\n'
             except AttributeError:
-                print('The following element does not exist in the dictionary'
-                      'yet: {}'.format(e))
-                raise
+                raise AttributeError('The following element does not exist in the dictionary yet: {}'.format(e))
 
         numpy_out += z
 
@@ -174,16 +151,17 @@ def _parser():
 
 def runner():
     args = _parser()
-
+    if args.output is None:
+        output = '{}.moog'.format(filter(None, args.output.rpartition('.')[0]))
     # Always add a .moog to the output if none extension is provided.
     if args.mode == 'ew':
-        numpy2moog_ew(args.input, args.output, args.header)
+        numpy2moog_ew(args.input, output, args.header)
 
     if args.mode == 'synth':
-        numpy2moog_synth(args.input, args.output, args.header)
+        numpy2moog_synth(args.input, output, args.header)
 
     if args.mode == 'asc':
-        vald2numpy(args.input, args.output)
+        vald2numpy(args.input, output)
 
 
 if __name__ == '__main__':

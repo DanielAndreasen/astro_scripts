@@ -7,6 +7,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import matplotlibcfg
 from astropy.io import fits
 from PyAstronomy import pyasl
 import argparse
@@ -18,13 +19,6 @@ except ImportError:
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
 from .utils import ccf_astro, vac2air, dopplerShift, get_wavelength
 
-plt.rcParams['xtick.direction'] = 'in'
-plt.rcParams['ytick.direction'] = 'in'
-plt.rcParams['axes.spines.right'] = False
-plt.rcParams['axes.spines.top'] = False
-plt.rcParams['axes.linewidth'] = 2
-plt.rcParams['xtick.major.width'] = 2
-plt.rcParams['ytick.major.width'] = 2
 
 def _download_spec(fout):
     """

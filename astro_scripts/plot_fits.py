@@ -16,7 +16,7 @@ try:
 except ImportError:
     lineidImport = False
     print('Install lineid_plot (pip install lineid_plot) for more functionality.')
-from .utils import ccf_astro, nrefrac, dopplerShift, get_wavelength
+from .utils import ccf_astro, vac2air, dopplerShift, get_wavelength
 
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
@@ -225,8 +225,7 @@ def main(fname, lines=False, linelist=False,
             w_mod = fits.getdata(pathwave)
         else:
             w_mod = get_wavelength(hdr)
-        nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
-        w_mod = w_mod/nre
+        w_mod = vac2air(w_mod)  # Correction for vacuum to air (ground based)
         i = (w_mod > w0) & (w_mod < w1)
         w_mod = w_mod[i]
         I_mod = I_mod[i]

@@ -6,17 +6,7 @@ from astropy.io import fits
 import numpy as np
 from scipy.interpolate import interp1d
 import argparse
-
-
-def vac2air(wavelength, density=1.0):
-    """
-    Refactory index by Elden 1953 from vacuum to air.
-    """
-    wl = np.array(wavelength)
-
-    s2 = (1e4/wl)**2
-    n = 1.0 + 6.4328e-5 + (2.94981e-2/(146.0 - s2)) + (2.554e-4/(41. - s2))
-    return wavelength/(density * n)
+from utils import vac2air
 
 
 def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True, vac=None):

@@ -7,7 +7,7 @@ import os
 import numpy as np
 from astropy.io import fits
 from argparse import ArgumentParser
-from .utils import ccf_astro, nrefrac, dopplerShift, get_wavelength
+from .utils import ccf_astro, vac2air, dopplerShift, get_wavelength
 
 
 def _parser():
@@ -74,8 +74,7 @@ def main(fname, model, ftype='1D'):
         w_mod = fits.getdata(pathwave)
     else:
         w_mod = get_wavelength(hdr)
-    nre = nrefrac(w_mod)  # Correction for vacuum to air (ground based)
-    w_mod = w_mod/nre
+    w_mod = vac2air(w_mod)  # Correction for vacuum to air (ground based)
     i = (w_mod > w0) & (w_mod < w1)
     w_mod = w_mod[i]
     I_mod = I_mod[i]

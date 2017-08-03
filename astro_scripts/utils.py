@@ -62,7 +62,7 @@ def _fit_ccf(rv, ccf):
     return RV, g
 
 
-def nrefrac(wavelength, density=1.0):
+def _nrefrac(wavelength, density=1.0):
     """
     Refactory index by Elden 1953 from vacuum to air.
     """
@@ -71,6 +71,13 @@ def nrefrac(wavelength, density=1.0):
     s2 = (1e4/wl)**2
     n = 1.0 + 6.4328e-5 + (2.94981e-2/(146.0 - s2)) + (2.554e-4/(41. - s2))
     return density * n
+
+
+def vac2air(wavelength, density=1.0):
+    """
+    Refactory index by Elden 1953 from vacuum to air.
+    """
+    return wavelength/_nrefrac(wavelength, density)
 
 
 def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):

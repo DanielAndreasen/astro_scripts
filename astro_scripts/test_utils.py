@@ -3,4 +3,4 @@ from astro_scripts import utils
 
 
 def test_nrefrac():
-    assert isinstance(utils.nrefrac(10, 10), float)
+    assert isinstance(utils._nrefrac(10, 10), float)

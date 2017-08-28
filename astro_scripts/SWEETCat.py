@@ -46,7 +46,7 @@ def _read_sweetcat(fname):
     df['source'] = df['source'].replace(np.nan, 0).astype(bool)
     df.drop(['comment0', 'comment1', 'comment2'], inplace=True, axis=1)
     # Adding luminosity to the DataFrame
-    df['lum'] = (df.teff/5777)**4 * df.mass
+    df['lum'] = (df.teff/5777)**4 * df.mass * (10**(4.44-df.logg))
     df = df[df['teff'] < 10000]
     return df
 

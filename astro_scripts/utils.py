@@ -66,7 +66,11 @@ def _nrefrac(wavelength, density=1.0):
     """
     Refactory index by Elden 1953 from vacuum to air.
     """
+    if density <= 0:
+        raise ValueError('Density has to be positive')
     wl = np.array(wavelength)
+    if 0 in wl:
+        raise ZeroDivisionError('Wavelength can not contain 0.')
 
     s2 = (1e4/wl)**2
     n = 1.0 + 6.4328e-5 + (2.94981e-2/(146.0 - s2)) + (2.554e-4/(41. - s2))
@@ -80,11 +84,10 @@ def vac2air(wavelength, density=1.0):
     return wavelength/_nrefrac(wavelength, density)
 
 
-def dopplerShift(wvl, flux, v, edgeHandling='firstlast', fill_value=None):
+def dopplerShift(wvl, flux, v):
     """Doppler shift a given spectrum.
     Does not interpolate to a new wavelength vector, but does shift it.
     """
-
     # Shifted wavelength axis
     wlprime = wvl * (1.0 + v / 299792.458)
     return flux, wlprime

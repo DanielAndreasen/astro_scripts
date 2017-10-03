@@ -9,4 +9,4 @@ requests>=2.13.0
 seaborn>=0.7.1
 astroquery==0.3.6.post2
 lineid_plot==0.5
-isochrones
+isochrones==1.0

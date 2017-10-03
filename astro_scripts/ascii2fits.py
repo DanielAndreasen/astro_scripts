@@ -6,7 +6,7 @@ from astropy.io import fits
 import numpy as np
 from scipy.interpolate import interp1d
 import argparse
-from utils import vac2air
+from .utils import vac2air
 
 
 def convert2fits(fname, fout=None, dA=0.01, unit='a', read=True, vac=None):

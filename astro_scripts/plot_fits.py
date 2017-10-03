@@ -7,7 +7,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-import matplotlibcfg
+from . import matplotlibcfg
 from astropy.io import fits
 from PyAstronomy import pyasl
 import argparse

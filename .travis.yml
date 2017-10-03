@@ -22,6 +22,10 @@ before_install:
   - conda update -q conda
   - conda info -a
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION matplotlib
   - source activate test-environment

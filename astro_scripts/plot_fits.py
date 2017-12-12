@@ -189,7 +189,7 @@ def main(fname, lines=False, linelist=False,
     dw = 10  # Some extra coverage for RV shifts
 
     if rv:
-        I, w = dopplerShift(wvl=w, flux=I, v=rv, fill_value=0.95)
+        I, w = dopplerShift(wvl=w, flux=I, v=rv)
     w0, w1 = w[0] - dw, w[-1] + dw
 
     if sun and not model:
@@ -204,7 +204,7 @@ def main(fname, lines=False, linelist=False,
             if ccf in ['sun', 'both'] and rv1:
                 print('Warning: RV set for Sun. Calculate RV with CCF')
             if rv1 and ccf not in ['sun', 'both']:
-                I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1, fill_value=0.95)
+                I_sun, w_sun = dopplerShift(wvl=w_sun, flux=I_sun, v=rv1)
         else:
             print('Warning: Solar spectrum not available in wavelength range.')
             sun = False
@@ -235,7 +235,7 @@ def main(fname, lines=False, linelist=False,
             if ccf in ['model', 'both'] and rv1:
                 print('Warning: RV set for model. Calculate RV with CCF')
             if rv1 and ccf not in ['model', 'both']:
-                I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1, fill_value=0.95)
+                I_mod, w_mod = dopplerShift(wvl=w_mod, flux=I_mod, v=rv1)
         else:
             print('Warning: Model spectrum not available in wavelength range.')
             model = False
@@ -252,7 +252,7 @@ def main(fname, lines=False, linelist=False,
             if ccf in ['telluric', 'both'] and rv2:
                 print('Warning: RV set for telluric, Calculate RV with CCF')
             if rv2 and ccf not in ['telluric', 'both']:
-                I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2, fill_value=0.95)
+                I_tel, w_tel = dopplerShift(wvl=w_tel, flux=I_tel, v=rv2)
         else:
             print('Warning: Telluric spectrum not available in wavelength range.')
             telluric = False
@@ -267,7 +267,7 @@ def main(fname, lines=False, linelist=False,
             rv1, r_sun, c_sun, x_sun, y_sun = ccf_astro((w, -I + 1), (w_sun, -I_sun + 1))
             if rv1 != 0:
                 print('Shifting solar spectrum...')
-                I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1, fill_value=0.95)
+                I_sun, w_sun = dopplerShift(w_sun, I_sun, v=rv1)
                 rvs['sun'] = rv1
                 print('DONE\n')
 
@@ -276,7 +276,7 @@ def main(fname, lines=False, linelist=False,
             rv1, r_mod, c_mod, x_mod, y_mod = ccf_astro((w, -I + 1), (w_mod, -I_mod + 1))
             if rv1 != 0:
                 print('Shifting model spectrum...')
-                I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1, fill_value=0.95)
+                I_mod, w_mod = dopplerShift(w_mod, I_mod, v=rv1)
                 rvs['model'] = rv1
                 print('DONE\n')
 
@@ -285,7 +285,7 @@ def main(fname, lines=False, linelist=False,
             rv2, r_tel, c_tel, x_tel, y_tel = ccf_astro((w, -I + 1), (w_tel, -I_tel + 1))
             if rv2 != 0:
                 print('Shifting telluric spectrum...')
-                I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2, fill_value=0.95)
+                I_tel, w_tel = dopplerShift(w_tel, I_tel, v=rv2)
                 rvs['telluric'] = rv2
                 print('DONE\n')
 
